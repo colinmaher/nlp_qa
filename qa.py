@@ -14,6 +14,12 @@ model = gensim.models.KeyedVectors.load_word2vec_format('pruned_word2vec.txt', b
 stopwords = set(nltk.corpus.stopwords.words("english"))
 
 
+def find_answer(sent_graph):
+    pattern = nltk.ParentedTree.fromstring("(NP)")
+    phrases = pattern_matcher(pattern, sent_graph)
+    #use dependency relations to decide which noun phrase contains the correct answer
+
+
 #"What" question specific function
 def get_best_what_sentence(filtered_sents, filtered_question, tree):
 
@@ -21,16 +27,16 @@ def get_best_what_sentence(filtered_sents, filtered_question, tree):
     # for subtree in tree:
     #     print(subtree)
     #     phrases = []
-        # pattern = nltk.ParentedTree.fromstring("(NP)")
-        # phrases = pattern_matcher(pattern, subtree)
+
         # pattern1 = nltk.ParentedTree.fromstring("(VP)")
         # phrases += pattern_matcher(pattern1, subtree)
 
     # print(phrases)
 
     print(filtered_sents)
-    # if question_word is not 'what':
+
     current_best = (filtered_sents[0][1], 0)
+    current_best_graph = filtered_sents[0][2]
     for pair in filtered_sents:
         sent_sim_weight_total = 0
         significant_weights = 0
@@ -64,9 +70,12 @@ def get_best_what_sentence(filtered_sents, filtered_question, tree):
             avg_weight = 0
         if avg_weight > current_best[1]:
             current_best = (pair[1], avg_weight)
+            current_best_graph = pair[2]
         print(avg_weight)
-    # print("current best: ")
-    # print(current_best[0])
+    print("current best graph: ")
+    print(current_best_graph)
+    
+    # return find_answer(current_best_graph)
     return current_best[0]
 
 def get_best_where_sentence(filtered_sents, filtered_question):
@@ -96,7 +105,7 @@ def get_best_where_sentence(filtered_sents, filtered_question):
                 elif qword == word: #for words not in model (like names)
                     sent_sim_weight_total += 2
                     significant_weights += 1
-                    print('same name += 2')
+                    # print('same name += 2')
                     
         # print(sent_sim_weight_total)
         if significant_weights is not 0:
@@ -321,7 +330,7 @@ def get_answer(question, story):
 
     
 
-    print(answer + "\n")
+    # print(answer + "\n")
     # if(isinstance(story["sch"], str)):
     #     print("Scherezade\n")
 
