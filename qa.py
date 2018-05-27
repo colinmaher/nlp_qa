@@ -15,7 +15,18 @@ stopwords = set(nltk.corpus.stopwords.words("english"))
 
 
 #"What" question specific function
-def get_best_what_sentence(filtered_sents, filtered_question):
+def get_best_what_sentence(filtered_sents, filtered_question, tree):
+
+    
+    # for subtree in tree:
+    #     print(subtree)
+    #     phrases = []
+        # pattern = nltk.ParentedTree.fromstring("(NP)")
+        # phrases = pattern_matcher(pattern, subtree)
+        # pattern1 = nltk.ParentedTree.fromstring("(VP)")
+        # phrases += pattern_matcher(pattern1, subtree)
+
+    # print(phrases)
 
     # if question_word is not 'what':
     current_best = (filtered_sents[0][1], 0)
@@ -23,7 +34,6 @@ def get_best_what_sentence(filtered_sents, filtered_question):
         sent_sim_weight_total = 0
         significant_weights = 0
 
-        # print(pair[0])
         for word in pair[0]:
         
             for qword in filtered_question:
@@ -36,17 +46,17 @@ def get_best_what_sentence(filtered_sents, filtered_question):
                     #     significant_weights += 1
                     #     print('same word *= ' + str(1.25))
                     if sim > 0.1:
-                        print(word, qword)
-                        print(sim)
+                        # print(word, qword)
+                        # print(sim)
                         sent_sim_weight_total += sim
                         significant_weights += 1
 
                 elif qword == word: #for words not in model (like names)
                     sent_sim_weight_total += 2
                     significant_weights += 1
-                    print('same name += 2')
+                    # print('same name += 2')
                     
-        print(sent_sim_weight_total, significant_weights)
+        # print(sent_sim_weight_total, significant_weights)
         if significant_weights is not 0:
             avg_weight = sent_sim_weight_total/len(pair[0])
         else:
@@ -87,7 +97,7 @@ def get_best_where_sentence(filtered_sents, filtered_question):
                     significant_weights += 1
                     print('same name += 2')
                     
-        print(sent_sim_weight_total, significant_weights)
+        print(sent_sim_weight_total)
         if significant_weights is not 0:
             avg_weight = sent_sim_weight_total/len(pair[0])
         else:
@@ -172,11 +182,11 @@ def choose_sentence(question, story):
     tree = story["story_par"]
     sentence = None
     if question_word == "what":
-        pattern = nltk.ParentedTree.fromstring("(S)")
+        pattern = nltk.ParentedTree.fromstring("(ROOT)")
         filtered_sents = match_trees(pattern, tree)
         #change here if we don't want qbow:
         filtered_question = get_bow(get_sentences(question)[0], stopwords)
-        sentence = get_best_what_sentence(filtered_sents, filtered_question)
+        sentence = get_best_what_sentence(filtered_sents, filtered_question, tree)
     # (S (NP (*)) (VP (*) (PP)))
 
     # elif question_word == "where":
@@ -197,12 +207,12 @@ def choose_sentence(question, story):
     #     filtered_question = get_bow(get_sentences(question)[0], stopwords)
     #     sentence = get_best_sentence(filtered_sents, filtered_question, question_word)
 
-    else:
-        pattern = nltk.ParentedTree.fromstring("(S)")
-        filtered_sents = match_trees(pattern, tree)
-        #change here if we don't want qbow:
-        filtered_question = get_bow(get_sentences(question)[0], stopwords)
-        sentence = get_best_what_sentence(filtered_sents, filtered_question)
+    # else:
+    #     pattern = nltk.ParentedTree.fromstring("(ROOT)")
+    #     filtered_sents = match_trees(pattern, tree)
+    #     #change here if we don't want qbow:
+    #     filtered_question = get_bow(get_sentences(question)[0], stopwords)
+    #     sentence = get_best_what_sentence(filtered_sents, filtered_question)
 
     return sentence
 
@@ -274,15 +284,18 @@ def get_answer(question, story):
     ###     Your Code Goes Here         ###
     # print(story["text"])
 
-    #use sch if it's there
+    # use sch if it's there
     if(isinstance(story["sch"], str)):
         sentences = get_sentences(story["sch"])
     else:
         sentences = get_sentences(story["text"])
-    
+    # sentences = get_sentences(story["text"])
+
     # print("\n" + question_word + "\n")
     
     print(question['qid'] + ": " + question["text"])
+    print(question['dep'])
+
     qbow = get_bow(get_sentences(question["text"])[0], stopwords)
     print("qbow:" + str(qbow))
     answer = " ".join([t[0] for t in baseline(qbow, sentences, stopwords)])
