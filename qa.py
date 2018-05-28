@@ -60,6 +60,7 @@ def find_ans_word(q_dep_graph):
 def find_answer(s_con_graph, s_dep_graph, q_dep_graph, pattern):
     pattern = nltk.ParentedTree.fromstring(pattern)
     phrases = pattern_matcher(pattern, s_con_graph)
+    phrases += pattern_matcher("(VP)", s_con_graph)
     phrase_sims = []
 
     important_q_word = find_ans_word(q_dep_graph)
@@ -68,6 +69,7 @@ def find_answer(s_con_graph, s_dep_graph, q_dep_graph, pattern):
 
     # most_similar_word = ""
     high_sim = 0
+    print(s_con_graph)
     for nodeNum in s_dep_graph.nodes:
         node = s_dep_graph.get_by_address(nodeNum)
         print(node)
@@ -78,9 +80,11 @@ def find_answer(s_con_graph, s_dep_graph, q_dep_graph, pattern):
                 high_sim = word_sim
                 if node['head'] != None:
                     word_in_ans_phrase = s_dep_graph.get_by_address(node['head'])["word"]
+                    print(word_in_ans_phrase)
                 else:
                     if node['word'] != None:
                         word_in_ans_phrase = node['word']
+                        print(word_in_ans_phrase)
 
     # print("word in ans: " + word_in_ans_phrase)
     highest_sim = 0
