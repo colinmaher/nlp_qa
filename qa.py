@@ -33,7 +33,7 @@ def find_ans_word(q_dep_graph):
         print(node)
         if node['rel'] == 'root':
             root_word = node['word']
-            print('root deps:')
+            # print('root deps:')
             # print(node['deps'].items())
             #if root is qword, recursively find nsub
             # if re.match(r'^W*', node['tag']):
@@ -64,41 +64,64 @@ def find_answer(s_con_graph, s_dep_graph, q_dep_graph, pattern):
     phrase_sims = []
 
     important_q_word = find_ans_word(q_dep_graph)
-    word_in_ans_phrase = " "
+    word_in_ans = "some bull"
 
 
     # most_similar_word = ""
     high_sim = 0
-    print(s_con_graph)
+    # print(s_con_graph)
     for nodeNum in s_dep_graph.nodes:
         node = s_dep_graph.get_by_address(nodeNum)
-        print(node)
+        # print(node)
         # if node['word'] == important_q_word:
-        if node['word'] in model.vocab and important_q_word in model.vocab:
-            word_sim = model.similarity(node['word'], important_q_word)
-            if word_sim > high_sim:
-                high_sim = word_sim
-                if node['head'] != None:
-                    word_in_ans_phrase = s_dep_graph.get_by_address(node['head'])["word"]
-                    print(word_in_ans_phrase)
-                else:
-                    if node['word'] != None:
-                        word_in_ans_phrase = node['word']
-                        print(word_in_ans_phrase)
+        if node['word'] is not None:
+            if node['word'] in model.vocab and important_q_word in model.vocab:
+                word_sim = model.similarity(node['word'], important_q_word)
+                if word_sim > high_sim:
+                    high_sim = word_sim
+                    if node['head'] != 0:
+                        word_in_ans = s_dep_graph.get_by_address(node['head'])
+                        word_in_ans = word_in_ans["word"]
+                        # print(word_in_ans)
+                    else:
+                        if node['word'] != None:
+                            word_in_ans = node['word']
+                            # print(word_in_ans)
+            else:
+                if node['word'].lower() == important_q_word.lower():
+                    if node['head'] != 0:
+                            word_in_ans = s_dep_graph.get_by_address(node['head'])
+                            word_in_ans = word_in_ans["word"]
+                            # print(word_in_ans)
+                    else:
+                        if node['word'] != None:
+                            word_in_ans = node['word']
+                            # print(word_in_ans)
 
-    # print("word in ans: " + word_in_ans_phrase)
-    highest_sim = 0
-    best_phrase = phrases[0]
-    for phrase in phrases:
-        for word in phrase.leaves():
-            print("Word: " + word)
-            if word in model.vocab and word_in_ans_phrase in model.vocab:
-                word_sim = model.similarity(word, word_in_ans_phrase)
-                if word_sim > highest_sim:
-                    highest_sim = word_sim
-                    best_phrase = phrase
+    print("word in ans: " + word_in_ans)
+    print("s_graph:")
+    print(s_con_graph)
+    for node in s_con_graph.subtrees(lambda s_con_graph: len(s_con_graph.leaves()) == 1 and word_in_ans == s_con_graph.leaves()[0]):
+        print(node)
+        #find smallest tree containing word_in_ans
+            #now find the parent noun phrase until the parent is not a noun phrase
 
-    return " ".join(best_phrase.leaves())
+        # print(node.parent())
+
+
+    # for phrase in phrases:
+    #     for word in phrase.leaves():
+            # print("Word: " + word)
+            # if word in model.vocab and word_in_ans in model.vocab:
+            #     word_sim = model.similarity(word, word_in_ans)
+            #     if word_sim > highest_sim:
+            #         highest_sim = word_sim
+            #         best_phrase = phrase
+
+            #find the place of the the word_in_ans in the story constituency tree, 
+            # go up trees until the tree is no longer an NP, extract the highest NP phrase we ended on
+
+    # return
     #use dependency relations to decide which noun phrase contains the correct answer
 
 
@@ -155,7 +178,7 @@ def get_best_what_sentence(filtered_sents, filtered_question, tree):
             avg_weight = 0
         if avg_weight > current_best[1]:
             current_best = (pair[1], avg_weight)
-            current_best_graph = pair[2]
+            current_best_con_graph = pair[2]
             current_best_dep_graph = pair[3]
         print(avg_weight)
     # print("current best graph: ")
@@ -164,49 +187,8 @@ def get_best_what_sentence(filtered_sents, filtered_question, tree):
     # print(find_answer(current_best_graph))
     pattern = "(NP)"
     # print(current_best_dep_graph)
-    return find_answer(current_best_con_graph, current_best_dep_graph, filtered_question[1], pattern)
-    # return find_answer(current_best_con_graph, current_best_dep_graph, question_dep_graph, pattern)
-    # return current_best[0]
+    find_answer(current_best_con_graph, current_best_dep_graph, filtered_question[1], pattern)
 
-def get_best_where_sentence(filtered_sents, filtered_question):
-    current_best = (filtered_sents[0][1], 0)
-    for pair in filtered_sents:
-        sent_sim_weight_total = 0
-        significant_weights = 0
-
-        # print(pair[0])
-        for word in pair[0]:
-        
-            for qword in filtered_question:
-                #check if words are in the model
-                if qword in model.vocab and word in model.vocab:
-                    sim = model.similarity(word, qword)
-                    
-                    # if sim > 0.98:
-                    #     sent_sim_weight_total += weights[0]
-                    #     significant_weights += 1
-                    #     print('same word *= ' + str(1.25))
-                    if sim > 0.1:
-                        # print(word, qword)
-                        # print(sim)
-                        sent_sim_weight_total += sim
-                        significant_weights += 1
-
-                elif qword == word: #for words not in model (like names)
-                    sent_sim_weight_total += 2
-                    significant_weights += 1
-                    # print('same name += 2')
-                    
-        # print(sent_sim_weight_total)
-        if significant_weights is not 0:
-            avg_weight = sent_sim_weight_total/len(pair[0])
-        else:
-            avg_weight = 0
-        if avg_weight > current_best[1]:
-            current_best = (pair[1], avg_weight)
-        print(avg_weight)
-    # print("current best: ")
-    # print(current_best[0])
     return current_best[0]
 
 # See if our pattern matches the current root of the tree
@@ -303,6 +285,7 @@ def choose_sentence(question, story):
         #change here if we don't want qbow:
         filtered_question = (get_bow(get_sentences(question['text'])[0], stopwords), question['dep'])
         sentence = get_best_what_sentence(filtered_sents, filtered_question, tree)
+        # find_answer()
     # (S (NP (*)) (VP (*) (PP)))
 
     # elif question_word == "where":
