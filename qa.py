@@ -14,9 +14,14 @@ model = gensim.models.KeyedVectors.load_word2vec_format('pruned_word2vec.txt', b
 stopwords = set(nltk.corpus.stopwords.words("english"))
 
 
-def find_answer(sent_graph):
-    pattern = nltk.ParentedTree.fromstring("(NP)")
-    phrases = pattern_matcher(pattern, sent_graph)
+def find_answer(s_con_graph, s_dep_graph, q_dep_graph, pattern):
+    pattern = nltk.ParentedTree.fromstring(pattern)
+    phrases = pattern_matcher(pattern, con_graph)
+
+    for node in q_dep_graph:
+
+    
+
     return phrases[0]
     #use dependency relations to decide which noun phrase contains the correct answer
 
@@ -42,7 +47,8 @@ def get_best_what_sentence(filtered_sents, filtered_question, tree):
         print(sent[3])
 
     current_best = (filtered_sents[0][1], 0)
-    current_best_graph = filtered_sents[0][2]
+    current_best_con_graph = filtered_sents[0][2]
+    current_best_dep_graph = filtered_sents[0][3]
     for pair in filtered_sents:
         sent_sim_weight_total = 0
         significant_weights = 0
@@ -77,13 +83,15 @@ def get_best_what_sentence(filtered_sents, filtered_question, tree):
         if avg_weight > current_best[1]:
             current_best = (pair[1], avg_weight)
             current_best_graph = pair[2]
+            current_best_dep_graph = pair[3]
         print(avg_weight)
     # print("current best graph: ")
     # print(current_best_graph)
 
     # print(find_answer(current_best_graph))
-
-    # return find_answer(current_best_graph)
+    pattern = "(NP)"
+    print(current_best_dep_graph)
+    # return find_answer(current_best_con_graph, current_best_dep_graph, question_dep_graph, pattern)
     return current_best[0]
 
 def get_best_where_sentence(filtered_sents, filtered_question):
