@@ -17,6 +17,7 @@ stopwords = set(nltk.corpus.stopwords.words("english"))
 def find_answer(sent_graph):
     pattern = nltk.ParentedTree.fromstring("(NP)")
     phrases = pattern_matcher(pattern, sent_graph)
+    return phrases[0]
     #use dependency relations to decide which noun phrase contains the correct answer
 
 
@@ -33,7 +34,12 @@ def get_best_what_sentence(filtered_sents, filtered_question, tree):
 
     # print(phrases)
 
-    print(filtered_sents)
+    #print q dep
+    print(filtered_question[1])
+    #print constituency and dep graphs
+    for sent in filtered_sents:
+        print(sent[2])
+        print(sent[3])
 
     current_best = (filtered_sents[0][1], 0)
     current_best_graph = filtered_sents[0][2]
@@ -43,7 +49,7 @@ def get_best_what_sentence(filtered_sents, filtered_question, tree):
 
         for word in pair[0]:
         
-            for qword in filtered_question:
+            for qword in filtered_question[0]:
                 #check if words are in the model
                 if qword in model.vocab and word in model.vocab:
                     sim = model.similarity(word, qword)
@@ -72,9 +78,11 @@ def get_best_what_sentence(filtered_sents, filtered_question, tree):
             current_best = (pair[1], avg_weight)
             current_best_graph = pair[2]
         print(avg_weight)
-    print("current best graph: ")
-    print(current_best_graph)
-    
+    # print("current best graph: ")
+    # print(current_best_graph)
+
+    # print(find_answer(current_best_graph))
+
     # return find_answer(current_best_graph)
     return current_best[0]
 
@@ -180,7 +188,7 @@ def get_sentences(text):
 def get_bow(tagged_tokens, stopwords):
     return set([t[0].lower() for t in tagged_tokens if t[0].lower() not in stopwords and re.match(r"\w+", t[0].lower()) is not None])
 
-def match_trees(pattern, tree, sent_structs):
+def match_trees(pattern, tree, sent_structs, sent_deps):
     possible_sents = []
     filtered_sents = []
     # # Match our pattern to the tree
@@ -191,22 +199,23 @@ def match_trees(pattern, tree, sent_structs):
             possible_sents.append(" ".join(subtrees[0].leaves()))
     sent_num = 0
     for sent in possible_sents:
-        filtered_sents.append((get_bow(get_sentences(sent)[0], stopwords), sent, sent_structs[sent_num]))
+        filtered_sents.append((get_bow(get_sentences(sent)[0], stopwords), sent, sent_structs[sent_num], sent_deps[sent_num]))
         sent_num += 1
     # print(filtered_sents)
     return filtered_sents
 
 #decides which algorithm to use
 def choose_sentence(question, story):
-    question_word = question.split(' ', 1)[0].lower()
+    question_word = question['text'].split(' ', 1)[0].lower()
     tree = story["story_par"]
     sentence = None
     if question_word == "what":
         pattern = nltk.ParentedTree.fromstring("(ROOT)")
         sentence_structs = match_sent_structs(pattern, tree)
-        filtered_sents = match_trees(pattern, tree, sentence_structs)
+        sent_deps = story['story_dep']
+        filtered_sents = match_trees(pattern, tree, sentence_structs, sent_deps)
         #change here if we don't want qbow:
-        filtered_question = get_bow(get_sentences(question)[0], stopwords)
+        filtered_question = (get_bow(get_sentences(question['text'])[0], stopwords), question['dep'])
         sentence = get_best_what_sentence(filtered_sents, filtered_question, tree)
     # (S (NP (*)) (VP (*) (PP)))
 
@@ -324,7 +333,7 @@ def get_answer(question, story):
     # #if sch is not available use our algorithm
     # if(not isinstance(story["sch"], str)):
     #choose sentence arbitrates strategy to use  for finding best sentence
-    sentence = choose_sentence(question["text"], story)
+    sentence = choose_sentence(question, story)
     if sentence is not None:
         answer = sentence
 
