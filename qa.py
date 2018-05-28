@@ -13,16 +13,88 @@ from nltk.corpus import brown
 model = gensim.models.KeyedVectors.load_word2vec_format('pruned_word2vec.txt', binary=False)
 stopwords = set(nltk.corpus.stopwords.words("english"))
 
+# def recursive_find_ans_word(node_indicies):
+#     for dep in node['deps'].items():
+#         if re.match(r'^V*', dep[0]):
+#             highest_subj_ind = dep[1][0]
+#         else:
+#             if len(q_dep_graph.get_by_address(dep[1])['deps']) > 0:
+#                 nodes_to_search += [dep[1]]
+#     if highest_subj_ind == 0:
+#         find_ans_word(q_dep_graph, nodes_to_search)
+
+def find_ans_word(q_dep_graph):
+    highest_subj_ind = 0
+    highest_subj = ''
+    root_word = ''
+    nodes_to_search = []
+    for nodeNum in q_dep_graph.nodes:
+        node = q_dep_graph.get_by_address(nodeNum)
+        print(node)
+        if node['rel'] == 'root':
+            root_word = node['word']
+            print('root deps:')
+            # print(node['deps'].items())
+            #if root is qword, recursively find nsub
+            # if re.match(r'^W*', node['tag']):
+            #     dep_nodes_list = []
+            #     for node in node['deps']:
+            #         dep_nodes_list.append(node[1])
+            #     recursive_find_ans_word(dep_nodes_list)
+            for dep in node['deps'].items():
+                if q_dep_graph.get_by_address(dep[1][0])['rel'] == 'nsubj':
+                    highest_subj_ind = dep[1][0]
+    highest_subj = q_dep_graph.get_by_address(highest_subj_ind)['word']
+    if highest_subj is None:
+        for dep in node['deps'].items():
+            if q_dep_graph.get_by_address(dep[1][0])['tag'].lower()[0] == 'v':
+                highest_subj_ind = dep[1][0]
+        if highest_subj_ind == 0:
+            highest_subj = root_word
+        else:
+            highest_subj = q_dep_graph.get_by_address(highest_subj_ind)['word']
+
+    print("best q word: " + highest_subj)
+    return highest_subj
 
 def find_answer(s_con_graph, s_dep_graph, q_dep_graph, pattern):
     pattern = nltk.ParentedTree.fromstring(pattern)
-    phrases = pattern_matcher(pattern, con_graph)
+    phrases = pattern_matcher(pattern, s_con_graph)
+    phrase_sims = []
 
-    for node in q_dep_graph:
+    important_q_word = find_ans_word(q_dep_graph)
+    word_in_ans_phrase = " "
 
-    
 
-    return phrases[0]
+    # most_similar_word = ""
+    high_sim = 0
+    for nodeNum in s_dep_graph.nodes:
+        node = s_dep_graph.get_by_address(nodeNum)
+        print(node)
+        # if node['word'] == important_q_word:
+        if node['word'] in model.vocab and important_q_word in model.vocab:
+            word_sim = model.similarity(node['word'], important_q_word)
+            if word_sim > high_sim:
+                high_sim = word_sim
+                if node['head'] != None:
+                    word_in_ans_phrase = s_dep_graph.get_by_address(node['head'])["word"]
+                else:
+                    if node['word'] != None:
+                        word_in_ans_phrase = node['word']
+
+    # print("word in ans: " + word_in_ans_phrase)
+    highest_sim = 0
+    best_phrase = phrases[0]
+    for phrase in phrases:
+        for word in phrase.leaves():
+            print("Word: " + word)
+            if word in model.vocab and word_in_ans_phrase in model.vocab:
+                word_sim = model.similarity(word, word_in_ans_phrase)
+                if word_sim > highest_sim:
+                    highest_sim = word_sim
+                    best_phrase = phrase
+
+    return " ".join(best_phrase.leaves())
     #use dependency relations to decide which noun phrase contains the correct answer
 
 
@@ -41,10 +113,7 @@ def get_best_what_sentence(filtered_sents, filtered_question, tree):
 
     #print q dep
     print(filtered_question[1])
-    #print constituency and dep graphs
-    for sent in filtered_sents:
-        print(sent[2])
-        print(sent[3])
+
 
     current_best = (filtered_sents[0][1], 0)
     current_best_con_graph = filtered_sents[0][2]
@@ -90,9 +159,10 @@ def get_best_what_sentence(filtered_sents, filtered_question, tree):
 
     # print(find_answer(current_best_graph))
     pattern = "(NP)"
-    print(current_best_dep_graph)
+    # print(current_best_dep_graph)
+    return find_answer(current_best_con_graph, current_best_dep_graph, filtered_question[1], pattern)
     # return find_answer(current_best_con_graph, current_best_dep_graph, question_dep_graph, pattern)
-    return current_best[0]
+    # return current_best[0]
 
 def get_best_where_sentence(filtered_sents, filtered_question):
     current_best = (filtered_sents[0][1], 0)
@@ -215,7 +285,11 @@ def match_trees(pattern, tree, sent_structs, sent_deps):
 #decides which algorithm to use
 def choose_sentence(question, story):
     question_word = question['text'].split(' ', 1)[0].lower()
+    # try:
+    #     tree = story["sch_par"]
+    # except:
     tree = story["story_par"]
+
     sentence = None
     if question_word == "what":
         pattern = nltk.ParentedTree.fromstring("(ROOT)")
