@@ -155,8 +155,7 @@ def get_best_what_sentence(filtered_sents, filtered_question, tree):
     #print q dep
     # print(filtered_question[1])
 
-
-    current_best = (filtered_sents[0][1], 0)
+    current_best = (filtered_sents[0], 0)
     current_best_con_graph = filtered_sents[0][2]
     current_best_dep_graph = filtered_sents[0][3]
     for pair in filtered_sents:
@@ -283,9 +282,8 @@ def match_trees(pattern, tree, sent_structs, sent_deps):
     return filtered_sents
 
 
-
 #decides which algorithm to use
-def choose_sentence(question, story):
+def choose_sentence(question, story, baseline_ans):
     question_word = question['text'].split(' ', 1)[0].lower()
     # try:
     #     tree = story["sch_par"]
@@ -302,13 +300,12 @@ def choose_sentence(question, story):
         filtered_question = (get_bow(get_sentences(question['text'])[0], stopwords), question['dep'])
         sentence = get_best_what_sentence(filtered_sents, filtered_question, tree)
         # find_answer()
+
     # (S (NP (*)) (VP (*) (PP)))
 
     # elif question_word == "where":
-    #     pattern = nltk.ParentedTree.fromstring("(S)")
-    #     filtered_sents = match_trees(pattern, tree)
-    #     filtered_question = get_bow(get_sentences(question)[0], stopwords)
-    #     sentence = get_best_where_sentence(filtered_sents, filtered_question)
+    #     where_pattern = ["(PP *)", "(NP *)"]
+    #     sentence = find_answer(baseline_con, where_pattern, question['text'])
 
     # elif question_word == "when":
     #     pattern = nltk.ParentedTree.fromstring("(S)")
@@ -321,6 +318,10 @@ def choose_sentence(question, story):
     #     filtered_sents = match_trees(pattern, tree)
     #     filtered_question = get_bow(get_sentences(question)[0], stopwords)
     #     sentence = get_best_sentence(filtered_sents, filtered_question, question_word)
+    # elif question_word == "who":
+    #     where_pattern = ["(NNP *)", "(NP *)"]
+    #     sentence = find_answer(baseline_con, where_pattern, question['text'])
+
 
     # else:
     #     pattern = nltk.ParentedTree.fromstring("(ROOT)")
@@ -414,7 +415,6 @@ def get_answer(question, story):
     qbow = get_bow(get_sentences(question["text"])[0], stopwords)
     print("qbow:" + str(qbow))
     answer = " ".join([t[0] for t in baseline(qbow, sentences, stopwords)])
-
 
     print(question['difficulty'])
     if (question['difficulty'] == 'Discourse'):
