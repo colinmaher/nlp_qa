@@ -1,6 +1,8 @@
 
 from qa_engine.base import QABase
 from qa_engine.score_answers import main as score_answers
+from wordnet.wordnet_demo import load_wordnet_ids
+
 # from stubs. import baseline_stub_word2vec_demo as baseline
 # import chunk_demo as chunk
 # import constituency_demo_stub as cgraph
@@ -9,6 +11,7 @@ import gensim
 import re
 import nltk
 from nltk.corpus import brown
+from nltk.corpus import wordnet as wn
 
 model = gensim.models.KeyedVectors.load_word2vec_format('pruned_word2vec.txt', binary=False)
 stopwords = set(nltk.corpus.stopwords.words("english"))
@@ -23,6 +26,17 @@ stopwords = set(nltk.corpus.stopwords.words("english"))
 #     if highest_subj_ind == 0:
 #         find_ans_word(q_dep_graph, nodes_to_search)
 
+brown_words_per_sentence = [brown.words(fileid) for fileid in brown.fileids()]
+brown_words = [word.lower() for sublist in brown_words_per_sentence for word in sublist]
+brown_text = nltk.Text(brown_words)
+# ignored_words = stopwords.words('english')
+finder = nltk.collocations.BigramCollocationFinder.from_words(brown_words, 2)
+finder.apply_freq_filter(2)
+# finder.apply_word_filter(lambda w: len(w) < 3 or w.lower() in ignored_words)
+
+brown_collocations = brown_text.collocations()
+print(brown_collocations)
+
 def find_ans_word(q_dep_graph):
     highest_subj_ind = 0
     highest_subj = ''
@@ -30,7 +44,7 @@ def find_ans_word(q_dep_graph):
     nodes_to_search = []
     for nodeNum in q_dep_graph.nodes:
         node = q_dep_graph.get_by_address(nodeNum)
-        print(node)
+        # print(node)
         if node['rel'] == 'root':
             root_word = node['word']
             # print('root deps:')
@@ -54,7 +68,7 @@ def find_ans_word(q_dep_graph):
         else:
             highest_subj = q_dep_graph.get_by_address(highest_subj_ind)['word']
 
-    print("best q word: " + highest_subj)
+    # print("best q word: " + highest_subj)
     return highest_subj
 
 def find_answer(s_con_graph, s_dep_graph, q_dep_graph, pattern):
@@ -98,11 +112,11 @@ def find_answer(s_con_graph, s_dep_graph, q_dep_graph, pattern):
                             word_in_ans = node['word']
                             # print(word_in_ans)
 
-    print("word in ans: " + word_in_ans)
-    print("s_graph:")
-    print(s_con_graph)
-    for node in s_con_graph.subtrees(lambda s_con_graph: len(s_con_graph.leaves()) == 1 and word_in_ans == s_con_graph.leaves()[0]):
-        print(node)
+    # print("word in ans: " + word_in_ans)
+    # print("s_graph:")
+    # print(s_con_graph)
+    # for node in s_con_graph.subtrees(lambda s_con_graph: len(s_con_graph.leaves()) == 1 and word_in_ans == s_con_graph.leaves()[0]):
+        # print(node)
         #find smallest tree containing word_in_ans
             #now find the parent noun phrase until the parent is not a noun phrase
 
@@ -139,7 +153,7 @@ def get_best_what_sentence(filtered_sents, filtered_question, tree):
     # print(phrases)
 
     #print q dep
-    print(filtered_question[1])
+    # print(filtered_question[1])
 
 
     current_best = (filtered_sents[0][1], 0)
@@ -268,6 +282,8 @@ def match_trees(pattern, tree, sent_structs, sent_deps):
     # print(filtered_sents)
     return filtered_sents
 
+
+
 #decides which algorithm to use
 def choose_sentence(question, story):
     question_word = question['text'].split(' ', 1)[0].lower()
@@ -277,7 +293,7 @@ def choose_sentence(question, story):
     tree = story["story_par"]
 
     sentence = None
-    if question_word == "what":
+    if question_word == "what" or question_word == "":
         pattern = nltk.ParentedTree.fromstring("(ROOT)")
         sentence_structs = match_sent_structs(pattern, tree)
         sent_deps = story['story_dep']
@@ -399,12 +415,59 @@ def get_answer(question, story):
     print("qbow:" + str(qbow))
     answer = " ".join([t[0] for t in baseline(qbow, sentences, stopwords)])
 
-    # #if sch is not available use our algorithm
-    # if(not isinstance(story["sch"], str)):
-    #choose sentence arbitrates strategy to use  for finding best sentence
-    sentence = choose_sentence(question, story)
-    if sentence is not None:
-        answer = sentence
+
+    print(question['difficulty'])
+    if (question['difficulty'] == 'Discourse'):
+        None
+        qword_text = nltk.Text(nltk.word_tokenize(question['text']))
+        print(qword_text.collocations(10))
+    else:
+        # #if sch is not available use our algorithm
+        # if(not isinstance(story["sch"], str)):
+        #choose sentence arbitrates strategy to use  for finding best sentence
+        noun_ids = load_wordnet_ids("wordnet/Wordnet_nouns.csv")
+        verb_ids = load_wordnet_ids("wordnet/Wordnet_verbs.csv")
+
+        #get nouns and verbs out of question so we can run them through wordNet
+        q_dep_graph = question["dep"]
+        # print(q_dep_graph)
+        q_verbs = []
+        q_nouns = []
+        important_qbow = []
+        q_noun_synsets = {}
+        q_verb_synsets = {}
+
+        for nodeNum in q_dep_graph.nodes:
+            node = q_dep_graph.get_by_address(nodeNum)
+            # print(node)
+            if node['tag'][0] is 'V':
+                q_verbs.append(node['word'])
+            elif node['tag'][0] is 'N':
+                q_nouns.append(node['word'])
+        #add any qbow words that weren't verbs or nouns
+        for qword in qbow:
+            if qword not in q_verbs and qword not in q_nouns:
+                important_qbow.append(qword)
+        for noun in q_nouns:
+            q_noun_synsets[noun] = wn.synsets(noun)
+        for verb in q_verbs:
+            q_verb_synsets[verb] = wn.synsets(verb)
+        # print(question['text'])
+
+
+        print(q_verbs, q_nouns, important_qbow)
+        # for qword in qbow:
+        #     q_synsets = wn.synsets(qword)
+        #     if q_synsets is not None:
+        #         for q_synset in q_synsets:
+
+        #         q_hypo = q_synset.hyponyms()
+        #         q_hyper = q_synset.hypernyms()
+        #     for sent in sentences:
+
+        sentence = choose_sentence(question, story)
+        if sentence is not None:
+            answer = sentence
 
     
 
