@@ -59,7 +59,7 @@ def get_best_what_sentence(filtered_sents, filtered_question, tree):
             current_best = (pair[1], avg_weight)
             current_best_con_graph = pair[2]
             current_best_dep_graph = pair[3]
-        print(avg_weight)
+        # print(avg_weight)
     # print("current best graph: ")
     # print(current_best_graph)
 
@@ -80,13 +80,14 @@ def choose_sentence(question, story):
     tree = story["story_par"]
 
     sentence = None
+    pattern = nltk.ParentedTree.fromstring("(ROOT)")
+    sentence_structs = match_sent_structs(pattern, tree)
+    sent_deps = story['story_dep']
+    filtered_sents = match_trees(pattern, tree, sentence_structs, sent_deps)
+    #change here if we don't want qbow:
+    filtered_question = (get_bow(get_sentences(question['text'])[0], stopwords), question['dep'])
+
     if question_word == "what" or question_word == "":
-        pattern = nltk.ParentedTree.fromstring("(ROOT)")
-        sentence_structs = match_sent_structs(pattern, tree)
-        sent_deps = story['story_dep']
-        filtered_sents = match_trees(pattern, tree, sentence_structs, sent_deps)
-        #change here if we don't want qbow:
-        filtered_question = (get_bow(get_sentences(question['text'])[0], stopwords), question['dep'])
         sentence = get_best_what_sentence(filtered_sents, filtered_question, tree)
         # find_answer()
     # (S (NP (*)) (VP (*) (PP)))
@@ -105,7 +106,7 @@ def choose_sentence(question, story):
 
     # elif question_word == "why":
     #     pattern = nltk.ParentedTree.fromstring("(S)")
-    #     filtered_sents = match_trees(pattern, tree)
+    #     fsentence = match_trees(pattern, tree)
     #     filtered_question = get_bow(get_sentences(question)[0], stopwords)
     #     sentence = get_best_sentence(filtered_sents, filtered_question, question_word)
 
@@ -145,3 +146,5 @@ def baseline(qbow, sentences, stopwords):
 
 
     return best_answer
+
+# def get_best_wordnet_sent(question):

@@ -1,19 +1,42 @@
 import nltk, re, gensim
 from nltk.corpus import brown
 
-model = gensim.models.KeyedVectors.load_word2vec_format('pruned_word2vec.txt', binary=False)
+# model = gensim.models.KeyedVectors.load_word2vec_format('pruned_word2vec.txt', binary=False)
+model = gensim.models.KeyedVectors.load('pruned_w2v_model.txt')
 stopwords = set(nltk.corpus.stopwords.words("english"))
 
+# model.
+
 #collocations from brown corpus
-brown_words_per_sentence = [brown.words(fileid) for fileid in brown.fileids()]
-brown_words = [word.lower() for sublist in brown_words_per_sentence for word in sublist]
-brown_text = nltk.Text(brown_words)
-# ignored_words = stopwords.words('english')
-finder = nltk.collocations.BigramCollocationFinder.from_words(brown_words, 2)
-finder.apply_freq_filter(2)
-# finder.apply_word_filter(lambda w: len(w) < 3 or w.lower() in ignored_words)
-brown_collocations = brown_text.collocations()
-print(brown_collocations)
+brown_collocations = []
+def generate_collocations():
+    global brown_collocations
+    if brown_collocations is None:
+        brown_words_per_sentence = [brown.words(fileid) for fileid in brown.fileids()]
+        brown_words = [word.lower() for sublist in brown_words_per_sentence for word in sublist]
+        brown_text = nltk.Text(brown_words)
+        # ignored_words = stopwords.words('english')
+        finder = nltk.collocations.BigramCollocationFinder.from_words(brown_words, 2)
+        finder.apply_freq_filter(2)
+        # finder.apply_word_filter(lambda w: len(w) < 3 or w.lower() in ignored_words)
+        brown_collocations = brown_text.collocations()
+        # print(brown_collocations)
+
+#generate synonyms, hypernyms, hyponyms of nouns in story sentences
+wn_story_list = {}
+def generate_wn_list(story):
+    # None
+    if story['sid'] in wn_story_list:
+        return
+    else:
+        if isinstance(story["sch"], str):
+            story_txt = story['sch']
+        else:
+            story_txt = story['text']
+        sents = get_sentences(story_txt)
+        for sent in sents:
+            sbow = get_bow(sent, stopwords)
+
 
 # See if our pattern matches the current root of the tree
 def matches(pattern, root):

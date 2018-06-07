@@ -10,7 +10,8 @@ python3 qa.py > output
 '''
 
 import utils
-from utils import nltk, stopwords
+from utils import (nltk, stopwords, get_sentences, get_bow, 
+                    generate_collocations, generate_wn_list)
 # import operator, re, nltk, utils
 from answer_sentences import baseline, choose_sentence
 import answer_phrases as ans_phrases
@@ -53,20 +54,24 @@ def get_answer(question, story):
     """
     ###     Your Code Goes Here         ###
     # print(story["text"])
-
+    
+    #generate resources needed throughout the program first
+    generate_collocations()
+    generate_wn_list(story)
+    
     # use sch if it's there
     if(isinstance(story["sch"], str)):
-        sentences = utils.get_sentences(story["sch"])
+        sentences = get_sentences(story["sch"])
+        # print(sentences)
     else:
-        sentences = utils.get_sentences(story["text"])
-    # sentences = get_sentences(story["text"])
+        sentences = get_sentences(story["text"])
 
     # print("\n" + question_word + "\n")
     
     print(question['qid'] + ": " + question["text"])
     # print(question['dep'])
 
-    qbow = utils.get_bow(utils.get_sentences(question["text"])[0], stopwords)
+    qbow = get_bow(get_sentences(question["text"])[0], stopwords)
     print("qbow:" + str(qbow))
     answer = " ".join([t[0] for t in baseline(qbow, sentences, stopwords)])
 
@@ -131,6 +136,7 @@ def get_answer(question, story):
     #     print("Scherezade\n")
 
     ###     End of Your Code         ###
+    print(answer)
     return answer
 
 
