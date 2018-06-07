@@ -1,8 +1,6 @@
 
 from qa_engine.base import QABase
 from qa_engine.score_answers import main as score_answers
-from wordnet.wordnet_demo import load_wordnet_ids
-
 # from stubs. import baseline_stub_word2vec_demo as baseline
 # import chunk_demo as chunk
 # import constituency_demo_stub as cgraph
@@ -11,132 +9,21 @@ import gensim
 import re
 import nltk
 from nltk.corpus import brown
-from nltk.corpus import wordnet as wn
 
 model = gensim.models.KeyedVectors.load_word2vec_format('pruned_word2vec.txt', binary=False)
 stopwords = set(nltk.corpus.stopwords.words("english"))
 
-# def recursive_find_ans_word(node_indicies):
-#     for dep in node['deps'].items():
-#         if re.match(r'^V*', dep[0]):
-#             highest_subj_ind = dep[1][0]
-#         else:
-#             if len(q_dep_graph.get_by_address(dep[1])['deps']) > 0:
-#                 nodes_to_search += [dep[1]]
-#     if highest_subj_ind == 0:
-#         find_ans_word(q_dep_graph, nodes_to_search)
 
-brown_words_per_sentence = [brown.words(fileid) for fileid in brown.fileids()]
-brown_words = [word.lower() for sublist in brown_words_per_sentence for word in sublist]
-brown_text = nltk.Text(brown_words)
-# ignored_words = stopwords.words('english')
-finder = nltk.collocations.BigramCollocationFinder.from_words(brown_words, 2)
-finder.apply_freq_filter(2)
-# finder.apply_word_filter(lambda w: len(w) < 3 or w.lower() in ignored_words)
+# def find_answer(s_con_graph, s_dep_graph, q_dep_graph, pattern):
+#     pattern = nltk.ParentedTree.fromstring(pattern)
+#     # phrases = pattern_matcher(pattern, con_graph)
 
-brown_collocations = brown_text.collocations()
-print(brown_collocations)
+#     # for node in q_dep_graph:
 
-def find_ans_word(q_dep_graph):
-    highest_subj_ind = 0
-    highest_subj = ''
-    root_word = ''
-    nodes_to_search = []
-    for nodeNum in q_dep_graph.nodes:
-        node = q_dep_graph.get_by_address(nodeNum)
-        # print(node)
-        if node['rel'] == 'root':
-            root_word = node['word']
-            # print('root deps:')
-            # print(node['deps'].items())
-            #if root is qword, recursively find nsub
-            # if re.match(r'^W*', node['tag']):
-            #     dep_nodes_list = []
-            #     for node in node['deps']:
-            #         dep_nodes_list.append(node[1])
-            #     recursive_find_ans_word(dep_nodes_list)
-            for dep in node['deps'].items():
-                if q_dep_graph.get_by_address(dep[1][0])['rel'] == 'nsubj':
-                    highest_subj_ind = dep[1][0]
-    highest_subj = q_dep_graph.get_by_address(highest_subj_ind)['word']
-    if highest_subj is None:
-        for dep in node['deps'].items():
-            if q_dep_graph.get_by_address(dep[1][0])['tag'].lower()[0] == 'v':
-                highest_subj_ind = dep[1][0]
-        if highest_subj_ind == 0:
-            highest_subj = root_word
-        else:
-            highest_subj = q_dep_graph.get_by_address(highest_subj_ind)['word']
+    
 
-    # print("best q word: " + highest_subj)
-    return highest_subj
-
-def find_answer(s_con_graph, s_dep_graph, q_dep_graph, pattern):
-    pattern = nltk.ParentedTree.fromstring(pattern)
-    phrases = pattern_matcher(pattern, s_con_graph)
-    phrases += pattern_matcher("(VP)", s_con_graph)
-    phrase_sims = []
-
-    important_q_word = find_ans_word(q_dep_graph)
-    word_in_ans = "some bull"
-
-
-    # most_similar_word = ""
-    high_sim = 0
-    # print(s_con_graph)
-    for nodeNum in s_dep_graph.nodes:
-        node = s_dep_graph.get_by_address(nodeNum)
-        # print(node)
-        # if node['word'] == important_q_word:
-        if node['word'] is not None:
-            if node['word'] in model.vocab and important_q_word in model.vocab:
-                word_sim = model.similarity(node['word'], important_q_word)
-                if word_sim > high_sim:
-                    high_sim = word_sim
-                    if node['head'] != 0:
-                        word_in_ans = s_dep_graph.get_by_address(node['head'])
-                        word_in_ans = word_in_ans["word"]
-                        # print(word_in_ans)
-                    else:
-                        if node['word'] != None:
-                            word_in_ans = node['word']
-                            # print(word_in_ans)
-            else:
-                if node['word'].lower() == important_q_word.lower():
-                    if node['head'] != 0:
-                            word_in_ans = s_dep_graph.get_by_address(node['head'])
-                            word_in_ans = word_in_ans["word"]
-                            # print(word_in_ans)
-                    else:
-                        if node['word'] != None:
-                            word_in_ans = node['word']
-                            # print(word_in_ans)
-
-    # print("word in ans: " + word_in_ans)
-    # print("s_graph:")
-    # print(s_con_graph)
-    # for node in s_con_graph.subtrees(lambda s_con_graph: len(s_con_graph.leaves()) == 1 and word_in_ans == s_con_graph.leaves()[0]):
-        # print(node)
-        #find smallest tree containing word_in_ans
-            #now find the parent noun phrase until the parent is not a noun phrase
-
-        # print(node.parent())
-
-
-    # for phrase in phrases:
-    #     for word in phrase.leaves():
-            # print("Word: " + word)
-            # if word in model.vocab and word_in_ans in model.vocab:
-            #     word_sim = model.similarity(word, word_in_ans)
-            #     if word_sim > highest_sim:
-            #         highest_sim = word_sim
-            #         best_phrase = phrase
-
-            #find the place of the the word_in_ans in the story constituency tree, 
-            # go up trees until the tree is no longer an NP, extract the highest NP phrase we ended on
-
-    # return
-    #use dependency relations to decide which noun phrase contains the correct answer
+#     # return phrases[0]
+#     #use dependency relations to decide which noun phrase contains the correct answer
 
 
 #"What" question specific function
@@ -154,6 +41,10 @@ def get_best_what_sentence(filtered_sents, filtered_question, tree):
 
     #print q dep
     # print(filtered_question[1])
+    #print constituency and dep graphs
+    # for sent in filtered_sents:
+    #     print(sent[2])
+    #     print(sent[3])
 
     current_best = (filtered_sents[0], 0)
     current_best_con_graph = filtered_sents[0][2]
@@ -190,19 +81,59 @@ def get_best_what_sentence(filtered_sents, filtered_question, tree):
         else:
             avg_weight = 0
         if avg_weight > current_best[1]:
-            current_best = (pair[1], avg_weight)
-            current_best_con_graph = pair[2]
+            current_best = (pair, avg_weight)
+            current_best_graph = pair[2]
             current_best_dep_graph = pair[3]
         print(avg_weight)
     # print("current best graph: ")
     # print(current_best_graph)
 
     # print(find_answer(current_best_graph))
-    pattern = "(NP)"
     # print(current_best_dep_graph)
-    find_answer(current_best_con_graph, current_best_dep_graph, filtered_question[1], pattern)
-
+    # return find_answer(current_best_con_graph, current_best_dep_graph, question_dep_graph, pattern)
+    print()
     return current_best[0]
+
+# def get_best_where_sentence(filtered_sents, filtered_question):
+#     current_best = (filtered_sents[0][1], 0)
+#     for pair in filtered_sents:
+#         sent_sim_weight_total = 0
+#         significant_weights = 0
+
+#         # print(pair[0])
+#         for word in pair[0]:
+        
+#             for qword in filtered_question:
+#                 #check if words are in the model
+#                 if qword in model.vocab and word in model.vocab:
+#                     sim = model.similarity(word, qword)
+                    
+#                     # if sim > 0.98:
+#                     #     sent_sim_weight_total += weights[0]
+#                     #     significant_weights += 1
+#                     #     print('same word *= ' + str(1.25))
+#                     if sim > 0.1:
+#                         # print(word, qword)
+#                         # print(sim)
+#                         sent_sim_weight_total += sim
+#                         significant_weights += 1
+
+#                 elif qword == word: #for words not in model (like names)
+#                     sent_sim_weight_total += 2
+#                     significant_weights += 1
+#                     # print('same name += 2')
+                    
+#         # print(sent_sim_weight_total)
+#         if significant_weights is not 0:
+#             avg_weight = sent_sim_weight_total/len(pair[0])
+#         else:
+#             avg_weight = 0
+#         if avg_weight > current_best[1]:
+#             current_best = (pair[1], avg_weight)
+#         print(avg_weight)
+#     # print("current best: ")
+#     # print(current_best[0])
+#     return current_best[0]
 
 # See if our pattern matches the current root of the tree
 def matches(pattern, root):
@@ -281,32 +212,109 @@ def match_trees(pattern, tree, sent_structs, sent_deps):
     # print(filtered_sents)
     return filtered_sents
 
+# def get_tree_size(tree):
 
-#decides which algorithm to use
-def choose_sentence(question, story, baseline_ans):
+
+
+def find_answer(s_con_graph, patterns, question):
+    #match sentence's constituency graph with pattern
+    qwords = nltk.word_tokenize(question)
+    qword = qwords[0].lower()
+    important_q_words = qwords[1:]
+    # patt2 = nltk.ParentedTree.fromstring(pattern[1])
+    # print(s_con_graph)
+    phrase_structs = []
+    for pat in patterns:
+        patt = nltk.ParentedTree.fromstring(pat)
+        phrase_structs += pattern_matcher(patt, s_con_graph)
+
+    ##compare phrase similarity with question (not working well)
+
+    # most_sim_phrase = phrase_structs[0]
+    # highest_phrase_sim = 0
+    # for phrase in phrase_structs:
+    #     phrase_text = phrase.leaves()
+    #     phrase_sim = 0
+    #     significant_weights = 0
+
+    #     for word in phrase_text:
+    #         for qword in important_q_words:
+    #             if qword in model.vocab and word in model.vocab:
+    #                 sim = model.similarity(word, qword)
+    #                 if sim > 0.1:
+    #                     significant_weights += 1
+    #                     # phrase_sim += model.similarity(word, qword)
+    #                     phrase_sim += 1
+    #                 # elif sim > 0.3:
+    #                 #     significant_weights += 1
+    #                 #     phrase_sim += 1
+    #             elif word == qword:
+    #                 phrase_sim += 2
+    #     if significant_weights > 0:
+    #         phrase_sim = phrase_sim
+    #     else:
+    #         phrase_sim = 0
+    #     if phrase_sim > highest_phrase_sim:
+    #         highest_phrase_sim = phrase_sim
+    #         most_sim_phrase = phrase
+                    
+
+    # phrase_structs += pattern_matcher(patt2, s_con_graph)
+    print("Phrase matches: " + str(phrase_structs))
+        # if highest_phrase_sim > 0.1:
+        #     answer = " ".join(most_sim_phrase.leaves())
+        # else:
+    
+    if(not phrase_structs):
+        return
+    else:
+        largest_phrase = phrase_structs[0]
+    for phrase in phrase_structs:
+        print(len(phrase))
+        size = len(phrase.leaves())
+        if size > len(largest_phrase.leaves()):
+            largest_phrase = phrase
+    
+    answer = " ".join(largest_phrase.leaves())
+        # size = 0
+        # for node in phrase:
+        #     size += 1
+
+    return answer
+
+# decides which algorithm to use
+# we should pass in the sentence here as a tuple of the text, the con graph and the dep graph
+# also need to use scherezade when applicable
+def select_answer(question, story, baseline):
     question_word = question['text'].split(' ', 1)[0].lower()
-    # try:
-    #     tree = story["sch_par"]
-    # except:
     tree = story["story_par"]
+    answer = None
+    
 
-    sentence = None
-    if question_word == "what" or question_word == "":
+    baseline_con = sentences[0]
+    for sent in sentences:
+        if " ".join(sent.leaves()) == baseline:
+            baseline_con = sent
+
+    # print(baseline_con)
+
+    if question_word == "what":
         pattern = nltk.ParentedTree.fromstring("(ROOT)")
-        sentence_structs = match_sent_structs(pattern, tree)
+        sentences = match_sent_structs(pattern, tree)
         sent_deps = story['story_dep']
-        filtered_sents = match_trees(pattern, tree, sentence_structs, sent_deps)
+        filtered_sents = match_trees(pattern, tree, sentences, sent_deps)
         #change here if we don't want qbow:
         filtered_question = (get_bow(get_sentences(question['text'])[0], stopwords), question['dep'])
-        sentence = get_best_what_sentence(filtered_sents, filtered_question, tree)
-        # find_answer()
+        sentence_tuple = get_best_what_sentence(filtered_sents, filtered_question, tree)
+        what_pattern = ["(NP *)"]
 
+        answer = find_answer(sentence_tuple[2], what_pattern, question['text'])
     # (S (NP (*)) (VP (*) (PP)))
 
-    # elif question_word == "where":
-    #     where_pattern = ["(PP *)", "(NP *)"]
-    #     sentence = find_answer(baseline_con, where_pattern, question['text'])
-
+    elif question_word == "where":
+        where_pattern = ["(PP *)"]
+        if(find_answer):
+            answer = find_answer(baseline_con, where_pattern, question['text'])
     # elif question_word == "when":
     #     pattern = nltk.ParentedTree.fromstring("(S)")
     #     filtered_sents = match_trees(pattern, tree)
@@ -318,9 +326,14 @@ def choose_sentence(question, story, baseline_ans):
     #     filtered_sents = match_trees(pattern, tree)
     #     filtered_question = get_bow(get_sentences(question)[0], stopwords)
     #     sentence = get_best_sentence(filtered_sents, filtered_question, question_word)
-    # elif question_word == "who":
+    elif question_word == "who":
+        where_pattern = ["(NNP *)", "(NP *)"]
+        answer = find_answer(baseline_con, where_pattern, question['text'])
+
+    # elif question_word == "which":
     #     where_pattern = ["(NNP *)", "(NP *)"]
     #     sentence = find_answer(baseline_con, where_pattern, question['text'])
+
 
 
     # else:
@@ -330,7 +343,7 @@ def choose_sentence(question, story, baseline_ans):
     #     filtered_question = get_bow(get_sentences(question)[0], stopwords)
     #     sentence = get_best_what_sentence(filtered_sents, filtered_question)
 
-    return sentence
+    return answer
 
     
     # if isinstance(story["sch"], str):
@@ -414,60 +427,14 @@ def get_answer(question, story):
 
     qbow = get_bow(get_sentences(question["text"])[0], stopwords)
     print("qbow:" + str(qbow))
-    answer = " ".join([t[0] for t in baseline(qbow, sentences, stopwords)])
+    base = " ".join([t[0] for t in baseline(qbow, sentences, stopwords)])
 
-    print(question['difficulty'])
-    if (question['difficulty'] == 'Discourse'):
-        None
-        qword_text = nltk.Text(nltk.word_tokenize(question['text']))
-        print(qword_text.collocations(10))
-    else:
-        # #if sch is not available use our algorithm
-        # if(not isinstance(story["sch"], str)):
-        #choose sentence arbitrates strategy to use  for finding best sentence
-        noun_ids = load_wordnet_ids("wordnet/Wordnet_nouns.csv")
-        verb_ids = load_wordnet_ids("wordnet/Wordnet_verbs.csv")
-
-        #get nouns and verbs out of question so we can run them through wordNet
-        q_dep_graph = question["dep"]
-        # print(q_dep_graph)
-        q_verbs = []
-        q_nouns = []
-        important_qbow = []
-        q_noun_synsets = {}
-        q_verb_synsets = {}
-
-        for nodeNum in q_dep_graph.nodes:
-            node = q_dep_graph.get_by_address(nodeNum)
-            # print(node)
-            if node['tag'][0] is 'V':
-                q_verbs.append(node['word'])
-            elif node['tag'][0] is 'N':
-                q_nouns.append(node['word'])
-        #add any qbow words that weren't verbs or nouns
-        for qword in qbow:
-            if qword not in q_verbs and qword not in q_nouns:
-                important_qbow.append(qword)
-        for noun in q_nouns:
-            q_noun_synsets[noun] = wn.synsets(noun)
-        for verb in q_verbs:
-            q_verb_synsets[verb] = wn.synsets(verb)
-        # print(question['text'])
-
-
-        print(q_verbs, q_nouns, important_qbow)
-        # for qword in qbow:
-        #     q_synsets = wn.synsets(qword)
-        #     if q_synsets is not None:
-        #         for q_synset in q_synsets:
-
-        #         q_hypo = q_synset.hyponyms()
-        #         q_hyper = q_synset.hypernyms()
-        #     for sent in sentences:
-
-        sentence = choose_sentence(question, story)
-        if sentence is not None:
-            answer = sentence
+    # #if sch is not available use our algorithm
+    # if(not isinstance(story["sch"], str)):
+    # choose sentence arbitrates strategy to use  for finding best answer
+    answer = select_answer(question, story, base)
+    if answer is not None:
+        answer = base
 
     
 
