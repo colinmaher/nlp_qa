@@ -5,5 +5,4 @@
 !utils.py
 !model-prune.py
 !.gitignore
-!pruned_w2v_model.txt
 !README

@@ -1,7 +1,5 @@
 from utils import (nltk, get_bow, get_sentences, match_trees, 
                     match_sent_structs, model, stopwords)
-from nltk.corpus import wordnet as wn
-from wordnet.wordnet_demo import load_wordnet_ids
 import operator
 
 #"What" question specific function

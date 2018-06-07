@@ -1,11 +1,17 @@
 import nltk, re, gensim
+from nltk.corpus import wordnet as wn
+from wordnet.wordnet_demo import load_wordnet_ids
 from nltk.corpus import brown
 
-# model = gensim.models.KeyedVectors.load_word2vec_format('pruned_word2vec.txt', binary=False)
-model = gensim.models.KeyedVectors.load('pruned_w2v_model.txt')
-stopwords = set(nltk.corpus.stopwords.words("english"))
+try: #check if model is generated and saved
+    model = gensim.models.KeyedVectors.load('pruned_w2v_model')
+except:
+    #remake and save if not
+    model = gensim.models.KeyedVectors.load_word2vec_format('pruned_word2vec.txt', binary=False)
+    model.save("pruned_w2v_model")
+    model = gensim.models.KeyedVectors.load('pruned_w2v_model')
 
-# model.
+stopwords = set(nltk.corpus.stopwords.words("english"))
 
 #collocations from brown corpus
 brown_collocations = []
@@ -21,6 +27,12 @@ def generate_collocations():
         # finder.apply_word_filter(lambda w: len(w) < 3 or w.lower() in ignored_words)
         brown_collocations = brown_text.collocations()
         # print(brown_collocations)
+
+#load in wordnet data about stories
+noun_ids = load_wordnet_ids("{}/{}".format("./wordnet", "Wordnet_nouns.csv"))
+verb_ids = load_wordnet_ids("{}/{}".format("./wordnet", "Wordnet_verbs.csv"))
+
+print(noun_ids)
 
 #generate synonyms, hypernyms, hyponyms of nouns in story sentences
 wn_story_list = {}
