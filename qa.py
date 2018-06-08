@@ -13,8 +13,8 @@ import utils
 from utils import (nltk, stopwords, get_sentences, get_bow, 
                     generate_collocations, generate_wn_list)
 # import operator, re, nltk, utils
-from answer_sentences import baseline, choose_sentence
-import answer_phrases as ans_phrases
+from answer_sentences import (baseline, choose_sentence)
+from answer_phrases import find_answer
 
 from qa_engine.base import QABase
 from qa_engine.score_answers import main as score_answers
@@ -135,6 +135,7 @@ def get_answer(question, story):
         None
         #call function to get part relevant of sentence out
         # s_dep
+        
         if(isinstance(story["sch"], str)):
             sentences = nltk.sent_tokenize(story["sch"])
             s_dep = story['sch_dep']
@@ -146,6 +147,7 @@ def get_answer(question, story):
         for sent in sentences:
             if sent == sentence:
                 print(s_dep[i])
+                answer = find_answer(question, s_dep[i])
             i+=1
 
     # print(answer + "\n")
