@@ -96,31 +96,6 @@ def choose_sentence(question, story):
         # find_answer()
     # (S (NP (*)) (VP (*) (PP)))
 
-    # elif question_word == "where":
-    #     pattern = nltk.ParentedTree.fromstring("(S)")
-    #     filtered_sents = match_trees(pattern, tree)
-    #     filtered_question = get_bow(get_sentences(question)[0], stopwords)
-    #     sentence = get_best_where_sentence(filtered_sents, filtered_question)
-
-    # elif question_word == "when":
-    #     pattern = nltk.ParentedTree.fromstring("(S)")
-    #     filtered_sents = match_trees(pattern, tree)
-    #     filtered_question = get_bow(get_sentences(question)[0], stopwords)
-    #     sentence = get_best_sentence(filtered_sents, filtered_question, question_word)
-
-    # elif question_word == "why":
-    #     pattern = nltk.ParentedTree.fromstring("(S)")
-    #     fsentence = match_trees(pattern, tree)
-    #     filtered_question = get_bow(get_sentences(question)[0], stopwords)
-    #     sentence = get_best_sentence(filtered_sents, filtered_question, question_word)
-
-    # else:
-    #     pattern = nltk.ParentedTree.fromstring("(ROOT)")
-    #     filtered_sents = match_trees(pattern, tree)
-    #     #change here if we don't want qbow:
-    #     filtered_question = get_bow(get_sentences(question)[0], stopwords)
-    #     sentence = get_best_what_sentence(filtered_sents, filtered_question)
-
     return sentence
 
 
@@ -151,19 +126,21 @@ def baseline(qbow, sentences, stopwords):
 
     return best_answer
 
-def get_best_wordnet_sent(question, story):
+def get_best_wordnet_sent(question, story, use_sch=True):
     # qbow = get_bow(question['text'])
     #initialize stemmer
     stemmer = PorterStemmer()
-    best_sent = 'default_answer'
+    best_sent = None
     best_score = 0.0
 
     #get right version of text to pull best sentence out of
-    if(isinstance(story["sch"], str)):
+    if(isinstance(story["sch"], str) and use_sch == True):
         sentences = story["sch"]
+        print("using sch")
         # print(sentences)
     else:
         sentences = story["text"]
+        print("using text")
     sentences = nltk.sent_tokenize(sentences)
     
     #first check qwords against wordnet words
@@ -179,26 +156,32 @@ def get_best_wordnet_sent(question, story):
         for word in sent:
             for qword in qwords:
                 if qword == word:
-                    # print('matched ' + qword + ' with ' + word)
+                    print('matched ' + qword + ' with ' + word)
                     sent_score += 1
-                    # print('sent ' + str(i) + ' score: ' + str(sent_score))
+                    print('sent ' + str(i) + ' score: ' + str(sent_score))
+                    print('sent ' + str(i) + ': ' + sentences[i])
+
 
         # if words not in wordnet data, try factoring in word similarity a bit
         for word in sent:
             for qword in qwords:
                 if word in model.vocab and qword in model.vocab:
                     sim = model.similarity(word, qword)                
-                    # print("sim of " + word + " " + qword + " = " + str(sim))
+                    # print("sim of '" + word + "' and '" + qword + "' = " + str(sim))
                     if sim > 0.5:
                         sent_score += 0.1
-
+                        print("sim of '" + word + "' and '" + qword + "' = " + str(sim))
+                        print('sent ' + str(i) + ' score: ' + str(sent_score))
+                        print('sent ' + str(i) + ': ' + sentences[i])
         if sent_score > best_score:
             best_score = sent_score
             best_sent = sentences[i]
+        print(sent)
         i += 1
-    #after similarity, check for exact matches between better qbow and sentence words (no need to bow)
-    print("best_sent")
-    print(best_sent)
+    
+    #check if we're using default_answer if so, use full text instead of scherazade
+    if best_sent == None and use_sch == True:
+        return get_best_wordnet_sent(question, story, False)
     return best_sent
         
 

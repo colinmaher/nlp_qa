@@ -130,7 +130,10 @@ def get_answer(question, story):
     sentence = choose_sentence(question, story)
     if sentence is not None:
         answer = sentence
-
+        
+    if sentence != None:
+        None
+        #call function to get part relevant of sentence out
     
 
     # print(answer + "\n")
@@ -140,6 +143,7 @@ def get_answer(question, story):
     ###     End of Your Code         ###
     print("answer:")
     print(answer)
+    print()
     return answer
 
 

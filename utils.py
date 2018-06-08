@@ -42,6 +42,8 @@ verb_ids = load_wordnet_ids("{}/{}".format("./wordnet", "Wordnet_verbs.csv"))
 # and create a new list containing an array of the synonyms etc that were found
 # in the given csv files
 wn_story_dict = {}
+wn_sch_story_dict = {}
+
 def generate_wn_list(story):
     #define lemmatizer
     wn_lem = PorterStemmer()
@@ -72,7 +74,10 @@ def generate_wn_list(story):
                 word_lem = wn_lem.stem(word)
                 # print("word_lem: " + word_lem)
                 for key in noun_ids.keys():
-                    if word_lem in noun_ids[key]["story_noun"]:
+                    # print(re.findall(r'\'(.*).vgl',noun_ids[key]["stories"])[0])
+                    if word_lem in noun_ids[key]["story_noun"] and re.findall(r'\'(.*).vgl',noun_ids[key]["stories"])[0] == sid:
+                        # print(word_lem + " in wn list for sentence")
+                        print("sid: " + sid)
                         word_is_annotated = True
                         ss = wn.synset(key)
                         # fetch synonyms, hypernyms, hyponyms of noun
@@ -97,7 +102,8 @@ def generate_wn_list(story):
                             word_list.add(hypo)
                     
                 for key in verb_ids.keys():
-                    if word_lem in verb_ids[key]["story_verb"]:
+                    if word_lem in verb_ids[key]["story_verb"] and re.findall(r'\'(.*).vgl',verb_ids[key]["stories"])[0] == sid:
+                        print("sid: " + sid)
                         word_is_annotated = True
                         ss = wn.synset(key)
                         # fetch synonyms, hypernyms, hyponyms of verb
