@@ -59,14 +59,14 @@ def get_answer(question, story):
     generate_collocations()
     generate_wn_list(story)
     
-    # use sch if it's there
+    # # use sch if it's there
     if(isinstance(story["sch"], str)):
         sentences = get_sentences(story["sch"])
         # print(sentences)
     else:
         sentences = get_sentences(story["text"])
 
-    # print("\n" + question_word + "\n")
+    # # print("\n" + question_word + "\n")
     
     # print(question)
     print(question['qid'] + ": " + question["text"])
@@ -130,11 +130,23 @@ def get_answer(question, story):
     sentence = choose_sentence(question, story)
     if sentence is not None:
         answer = sentence
-        
+
     if sentence != None:
         None
         #call function to get part relevant of sentence out
-    
+        # s_dep
+        if(isinstance(story["sch"], str)):
+            sentences = nltk.sent_tokenize(story["sch"])
+            s_dep = story['sch_dep']
+            # print(sentences)
+        else:
+            sentences = nltk.sent_tokenize(story["text"])
+            s_dep = story['story_dep']
+        i = 0
+        for sent in sentences:
+            if sent == sentence:
+                print(s_dep[i])
+            i+=1
 
     # print(answer + "\n")
     # if(isinstance(story["sch"], str)):
