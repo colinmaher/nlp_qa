@@ -2,6 +2,7 @@ import nltk, re, gensim
 from nltk.corpus import wordnet as wn
 from wordnet.wordnet_demo import load_wordnet_ids
 from nltk.corpus import brown
+from nltk.stem.porter import *
 
 try: #check if model is generated and saved
     model = gensim.models.KeyedVectors.load('pruned_w2v_model')
@@ -13,7 +14,7 @@ except:
 
 stopwords = set(nltk.corpus.stopwords.words("english"))
 
-#collocations from brown corpus
+# collocations from brown corpus
 brown_collocations = []
 def generate_collocations():
     global brown_collocations
@@ -26,28 +27,112 @@ def generate_collocations():
         finder.apply_freq_filter(2)
         # finder.apply_word_filter(lambda w: len(w) < 3 or w.lower() in ignored_words)
         brown_collocations = brown_text.collocations()
-        # print(brown_collocations)
+        print(brown_collocations)
 
-#load in wordnet data about stories
+# load in wordnet data about stories
 noun_ids = load_wordnet_ids("{}/{}".format("./wordnet", "Wordnet_nouns.csv"))
 verb_ids = load_wordnet_ids("{}/{}".format("./wordnet", "Wordnet_verbs.csv"))
 
-print(noun_ids)
+# print("noun ids: ")
+# print(noun_ids)
+# print("verb ids: ")
+# print(verb_ids)
 
-#generate synonyms, hypernyms, hyponyms of nouns in story sentences
-wn_story_list = {}
+# generate synonyms, hypernyms, hyponyms of nouns and verbs in story sentences
+# and create a new list containing an array of the synonyms etc that were found
+# in the given csv files
+wn_story_dict = {}
 def generate_wn_list(story):
-    # None
-    if story['sid'] in wn_story_list:
+    #define lemmatizer
+    wn_lem = PorterStemmer()
+    
+    sid = story['sid']
+    if sid in wn_story_dict:
         return
     else:
         if isinstance(story["sch"], str):
             story_txt = story['sch']
         else:
             story_txt = story['text']
-        sents = get_sentences(story_txt)
+
+        wn_sent_list = []
+        wn_story_dict[sid] = []
+        sents_tagged = get_sentences(story_txt)
+        sents = nltk.sent_tokenize(story_txt)
+        # print(sents)
+        j = 0
         for sent in sents:
-            sbow = get_bow(sent, stopwords)
+            word_list = set()   
+            sbow = get_bow(sents_tagged[j], stopwords)
+            # words = nltk.word_tokenize(sent)
+            # print(sent)
+            # print(sbow)
+            word_is_annotated = False
+            for word in sbow:
+                word_lem = wn_lem.stem(word)
+                # print("word_lem: " + word_lem)
+                for key in noun_ids.keys():
+                    if word_lem in noun_ids[key]["story_noun"]:
+                        word_is_annotated = True
+                        ss = wn.synset(key)
+                        # fetch synonyms, hypernyms, hyponyms of noun
+                        synonyms = [lemma.name() for lemma in ss.lemmas()]
+                        hypernyms_lemmas = [hyp.lemma_names() for hyp in ss.hypernyms()]
+                        hypernyms = []
+
+                        for lemmas in hypernyms_lemmas:
+                            hypernyms += lemmas
+
+                        hyponyms_lemmas = [hyp.lemma_names() for hyp in ss.hyponyms()]
+                        hyponyms = []
+
+                        for lemmas in hyponyms_lemmas:
+                            hyponyms += lemmas
+
+                        for syn in synonyms:
+                            word_list.add(syn)
+                        for hyp in hypernyms:
+                            word_list.add(hyp)
+                        for hypo in hyponyms:
+                            word_list.add(hypo)
+                    
+                for key in verb_ids.keys():
+                    if word_lem in verb_ids[key]["story_verb"]:
+                        word_is_annotated = True
+                        ss = wn.synset(key)
+                        # fetch synonyms, hypernyms, hyponyms of verb
+                        synonyms = [lemma.name() for lemma in ss.lemmas()]
+
+                        hypernyms_lemmas = [hyp.lemma_names() for hyp in ss.hypernyms()]
+                        hypernyms = []
+
+                        for lemmas in hypernyms_lemmas:
+                            hypernyms += lemmas
+
+                        hyponyms_lemmas = [hyp.lemma_names() for hyp in ss.hyponyms()]
+                        hyponyms = []
+
+                        for lemmas in hyponyms_lemmas:
+                            hyponyms += lemmas
+
+                        for syn in synonyms:
+                            word_list.add(syn)
+                        for hyp in hypernyms:
+                            word_list.add(hyp)
+                        for hypo in hyponyms:
+                            word_list.add(hypo)
+
+                # add each sbow word to its sentence list
+                #lemmatize word before adding, because we'll compare to lemmatized qwords
+                word_list.add(word)
+            j+=1
+            # print(word_list)
+            wn_sent_list.append(word_list)
+        wn_story_dict[sid] = wn_sent_list
+        
+        
+        print(wn_story_dict[sid])
+            
 
 
 # See if our pattern matches the current root of the tree

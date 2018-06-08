@@ -1,6 +1,7 @@
 from utils import (nltk, get_bow, get_sentences, match_trees, 
-                    match_sent_structs, model, stopwords)
+                    match_sent_structs, model, stopwords, wn_story_dict)
 import operator
+from nltk.stem.porter import *
 
 #"What" question specific function
 def get_best_what_sentence(filtered_sents, filtered_question, tree):
@@ -71,22 +72,23 @@ def get_best_what_sentence(filtered_sents, filtered_question, tree):
 
 #decides which algorithm to use
 def choose_sentence(question, story):
-    question_word = question['text'].split(' ', 1)[0].lower()
-    # try:
-    #     tree = story["sch_par"]
-    # except:
-    tree = story["story_par"]
+    # question_word = question['text'].split(' ', 1)[0].lower()
+    # # try:
+    # #     tree = story["sch_par"]
+    # # except:
+    # tree = story["story_par"]
 
-    sentence = None
-    pattern = nltk.ParentedTree.fromstring("(ROOT)")
-    sentence_structs = match_sent_structs(pattern, tree)
-    sent_deps = story['story_dep']
-    filtered_sents = match_trees(pattern, tree, sentence_structs, sent_deps)
-    #change here if we don't want qbow:
-    filtered_question = (get_bow(get_sentences(question['text'])[0], stopwords), question['dep'])
+    # sentence = None
+    # pattern = nltk.ParentedTree.fromstring("(ROOT)")
+    # sentence_structs = match_sent_structs(pattern, tree)
+    # sent_deps = story['story_dep']
+    # filtered_sents = match_trees(pattern, tree, sentence_structs, sent_deps)
+    # #change here if we don't want qbow:
+    # filtered_question = (get_bow(get_sentences(question['text'])[0], stopwords), question['dep'])
 
-    if question_word == "what" or question_word == "":
-        sentence = get_best_what_sentence(filtered_sents, filtered_question, tree)
+    # if question_word == "what":
+        # sentence = get_best_what_sentence(filtered_sents, filtered_question, tree)
+    sentence = get_best_wordnet_sent(question, story)
         # find_answer()
     # (S (NP (*)) (VP (*) (PP)))
 
@@ -145,4 +147,43 @@ def baseline(qbow, sentences, stopwords):
 
     return best_answer
 
-# def get_best_wordnet_sent(question):
+def get_best_wordnet_sent(question, story):
+    # qbow = get_bow(question['text'])
+    #initialize stemmer
+    stemmer = PorterStemmer()
+    best_sent = ''
+    best_score = 0.0
+
+    #get right version of text to pull best sentence out of
+    if(isinstance(story["sch"], str)):
+        sentences = get_sentences(story["sch"])
+        # print(sentences)
+    else:
+        sentences = get_sentences(story["text"])
+    #first check qwords against wordnet words
+    qwords = nltk.word_tokenize(question['text'])
+    for qword in qwords:
+        i = 0
+        for sent in wn_story_dict[question['sid']]:
+            sent_score = 0.0
+            did_match = False
+            for word in sent:
+                if stemmer.stem(qword) in word:
+                    sent_score += 1
+                    did_match = True
+            best_sim = 0.0
+            if did_match == False:
+                for word in sent:
+                    if word in model.vocab and qword in model.vocab:
+                        sim = model.similarity(word, qword)
+                        if sim > best_sim:
+                            best_sim = sim
+                if best_sim > 0.5:
+                    sent_score += 1
+            if sent_score > best_score:
+                best_score = sent_score
+                best_sent = sentences[i]
+            i += 1
+    return best_sent
+        
+
