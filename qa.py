@@ -68,11 +68,11 @@ def get_answer(question, story):
 
     # print("\n" + question_word + "\n")
     
-    print(question)
+    # print(question)
     print(question['qid'] + ": " + question["text"])
     # print(question['dep'])
-    print(story['text'])
-    print(story['sch'])
+    # print(story['text'])
+    # print(story['sch'])
     qbow = get_bow(get_sentences(question["text"])[0], stopwords)
     print("qbow:" + str(qbow))
     answer = " ".join([t[0] for t in baseline(qbow, sentences, stopwords)])
@@ -138,8 +138,8 @@ def get_answer(question, story):
     #     print("Scherezade\n")
 
     ###     End of Your Code         ###
-    # print("answer:")
-    # print(answer)
+    print("answer:")
+    print(answer)
     return answer
 
 

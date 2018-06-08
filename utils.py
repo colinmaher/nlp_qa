@@ -133,7 +133,10 @@ def generate_wn_list(story):
         
         print(wn_story_dict[sid])
             
-
+def better_bow(question):
+    # qdep = 
+    qdep = question['dep']
+    # print(qdep)
 
 # See if our pattern matches the current root of the tree
 def matches(pattern, root):

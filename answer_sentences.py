@@ -1,4 +1,4 @@
-from utils import (nltk, get_bow, get_sentences, match_trees, 
+from utils import (nltk, get_bow, get_sentences, match_trees, better_bow, 
                     match_sent_structs, model, stopwords, wn_story_dict)
 import operator
 from nltk.stem.porter import *
@@ -88,7 +88,11 @@ def choose_sentence(question, story):
 
     # if question_word == "what":
         # sentence = get_best_what_sentence(filtered_sents, filtered_question, tree)
-    sentence = get_best_wordnet_sent(question, story)
+    diff = question['difficulty']
+    if diff != 'Discourse':
+        sentence = get_best_wordnet_sent(question, story)
+    else:
+        sentence = None
         # find_answer()
     # (S (NP (*)) (VP (*) (PP)))
 
@@ -151,39 +155,50 @@ def get_best_wordnet_sent(question, story):
     # qbow = get_bow(question['text'])
     #initialize stemmer
     stemmer = PorterStemmer()
-    best_sent = ''
+    best_sent = 'default_answer'
     best_score = 0.0
 
     #get right version of text to pull best sentence out of
     if(isinstance(story["sch"], str)):
-        sentences = get_sentences(story["sch"])
+        sentences = story["sch"]
         # print(sentences)
     else:
-        sentences = get_sentences(story["text"])
+        sentences = story["text"]
+    sentences = nltk.sent_tokenize(sentences)
+    
     #first check qwords against wordnet words
     qwords = nltk.word_tokenize(question['text'])
-    for qword in qwords:
-        i = 0
-        for sent in wn_story_dict[question['sid']]:
-            sent_score = 0.0
-            did_match = False
-            for word in sent:
-                if stemmer.stem(qword) in word:
+    qwords = get_bow(get_sentences(question['text'])[0], stopwords)
+    # print("better qbow:")
+    # print(better_bow(question))
+
+    i = 0
+    for sent in wn_story_dict[question['sid']]:
+        sent_score = 0.0
+        did_match = False
+        for word in sent:
+            for qword in qwords:
+                if qword == word:
+                    print('matched ' + qword + ' with ' + word)
                     sent_score += 1
+                    print('sent ' + str(i) + ' score: ' + str(sent_score))
                     did_match = True
-            best_sim = 0.0
-            if did_match == False:
-                for word in sent:
-                    if word in model.vocab and qword in model.vocab:
-                        sim = model.similarity(word, qword)
-                        if sim > best_sim:
-                            best_sim = sim
-                if best_sim > 0.5:
-                    sent_score += 1
-            if sent_score > best_score:
-                best_score = sent_score
-                best_sent = sentences[i]
-            i += 1
+        best_sim = 0.0
+        if did_match == False:
+            for word in sent:
+                if word in model.vocab and qword in model.vocab:
+                    sim = model.similarity(word, qword)
+                    if sim > best_sim:
+                        best_sim = sim
+            if best_sim > 0.5:
+                sent_score += 1
+        if sent_score > best_score:
+            best_score = sent_score
+            best_sent = sentences[i]
+        i += 1
+    #after similarity, check for exact matches between better qbow and sentence words (no need to bow)
+    print("best_sent")
+    print(best_sent)
     return best_sent
         
 
