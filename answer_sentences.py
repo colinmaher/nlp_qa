@@ -175,23 +175,23 @@ def get_best_wordnet_sent(question, story):
     i = 0
     for sent in wn_story_dict[question['sid']]:
         sent_score = 0.0
-        did_match = False
+        # did_match = False
         for word in sent:
             for qword in qwords:
                 if qword == word:
-                    print('matched ' + qword + ' with ' + word)
+                    # print('matched ' + qword + ' with ' + word)
                     sent_score += 1
-                    print('sent ' + str(i) + ' score: ' + str(sent_score))
-                    did_match = True
-        best_sim = 0.0
-        if did_match == False:
-            for word in sent:
+                    # print('sent ' + str(i) + ' score: ' + str(sent_score))
+
+        # if words not in wordnet data, try factoring in word similarity a bit
+        for word in sent:
+            for qword in qwords:
                 if word in model.vocab and qword in model.vocab:
-                    sim = model.similarity(word, qword)
-                    if sim > best_sim:
-                        best_sim = sim
-            if best_sim > 0.5:
-                sent_score += 1
+                    sim = model.similarity(word, qword)                
+                    # print("sim of " + word + " " + qword + " = " + str(sim))
+                    if sim > 0.5:
+                        sent_score += 0.1
+
         if sent_score > best_score:
             best_score = sent_score
             best_sent = sentences[i]

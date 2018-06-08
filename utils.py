@@ -131,7 +131,7 @@ def generate_wn_list(story):
         wn_story_dict[sid] = wn_sent_list
         
         
-        print(wn_story_dict[sid])
+        # print(wn_story_dict[sid])
             
 def better_bow(question):
     # qdep = 
