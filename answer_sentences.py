@@ -1,12 +1,5 @@
-<<<<<<< HEAD
-from utils import (nltk, get_bow, get_sentences, match_trees, 
-                    match_sent_structs, model, stopwords, pattern_matcher)
-from nltk.corpus import wordnet as wn
-from wordnet.wordnet_demo import load_wordnet_ids
-=======
 from utils import (nltk, get_bow, get_sentences, match_trees, better_bow, 
                     match_sent_structs, model, stopwords, wn_story_dict)
->>>>>>> 710fc5c97d311d82b35fd75738e589e1ec09fd3d
 import operator
 from nltk.stem.porter import *
 
