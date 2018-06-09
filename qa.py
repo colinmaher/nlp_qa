@@ -69,8 +69,11 @@ def get_answer(question, story):
     # # print("\n" + question_word + "\n")
     
     # print(question)
-    print(question['qid'] + ": " + question["text"])
+    print(question['qid'])
+    # print(question["text"])
     print('difficulty: ' + question['difficulty'])
+    # print(question["qid"])
+    #  + ": " + question["text"])
     # print(question['dep'])
     # print(story['text'])
     # print(story['sch'])
