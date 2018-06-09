@@ -69,7 +69,7 @@ def get_answer(question, story):
     # # print("\n" + question_word + "\n")
     
     # print(question)
-    # print(question['qid'] + ": " + question["text"])
+    print(question['qid'] + ": " + question["text"])
     # print(question['dep'])
     # print(story['text'])
     # print(story['sch'])
@@ -136,15 +136,17 @@ def get_answer(question, story):
         if(isinstance(story["sch"], str)):
             sentences = nltk.sent_tokenize(story["sch"])
             s_dep = story['sch_dep']
+            s_con = story['sch_par']
             # print(sentences)
         else:
             sentences = nltk.sent_tokenize(story["text"])
             s_dep = story['story_dep']
+            s_con = story['story_par']
         i = 0
         for sent in sentences:
             if sent == sentence:
                 # print(s_dep[i])
-                answer = find_answer(question, s_dep[i])
+                answer = find_answer(question, s_dep[i], s_con[i])
             i+=1
 
     # print(answer + "\n")
