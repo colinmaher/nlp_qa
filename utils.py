@@ -27,7 +27,7 @@ def generate_collocations():
         finder.apply_freq_filter(2)
         # finder.apply_word_filter(lambda w: len(w) < 3 or w.lower() in ignored_words)
         brown_collocations = brown_text.collocations()
-        print(brown_collocations)
+        # print(brown_collocations)
 
 # load in wordnet data about stories
 noun_ids = load_wordnet_ids("{}/{}".format("./wordnet", "Wordnet_nouns.csv"))
@@ -77,7 +77,7 @@ def generate_wn_list(story):
                     # print(re.findall(r'\'(.*).vgl',noun_ids[key]["stories"])[0])
                     if word_lem in noun_ids[key]["story_noun"] and re.findall(r'\'(.*).vgl',noun_ids[key]["stories"])[0] == sid:
                         # print(word_lem + " in wn list for sentence")
-                        print("sid: " + sid)
+                        # print("sid: " + sid)
                         word_is_annotated = True
                         ss = wn.synset(key)
                         # fetch synonyms, hypernyms, hyponyms of noun
@@ -103,7 +103,7 @@ def generate_wn_list(story):
                     
                 for key in verb_ids.keys():
                     if word_lem in verb_ids[key]["story_verb"] and re.findall(r'\'(.*).vgl',verb_ids[key]["stories"])[0] == sid:
-                        print("sid: " + sid)
+                        # print("sid: " + sid)
                         word_is_annotated = True
                         ss = wn.synset(key)
                         # fetch synonyms, hypernyms, hyponyms of verb

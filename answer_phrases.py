@@ -50,15 +50,44 @@ def find_ans_word(q_dep_graph):
 def find_answer(question, sent_dep, sent_con):
     #get right types of phrase based on question first
     qword = nltk.word_tokenize(question['text'])[0].lower()
+    phrases = ""
+    print(sent_con)
     if qword == 'what':
-        print("sent constuency graph:")
-        for tree in sent_con.subtrees():
-            print(tree)
-        pattern = nltk.ParentedTree.fromstring("(NP (DT) (*) (NN))")
+        # print("sent constuency graph:")
+        # for tree in sent_con.subtrees():
+        #     print(tree)
+        pattern = nltk.ParentedTree.fromstring("(NP)")
         phrases = pattern_matcher(pattern, sent_con)
-        print("phrases:")
-        print(phrases)
+        
+    if qword == 'where':
+        pattern = nltk.ParentedTree.fromstring("(PP)")
+        phrases = pattern_matcher(pattern, sent_con)
 
+    elif qword == 'who':
+        pattern = nltk.ParentedTree.fromstring("(NP)")
+        phrases = pattern_matcher(pattern, sent_con)
+        # pattern = nltk.ParentedTree.fromstring("(NNP)")
+        # phrases += pattern_matcher(pattern, sent_con)
+
+    elif qword == 'when':
+        pattern = nltk.ParentedTree.fromstring("(NP)")
+        phrases = pattern_matcher(pattern, sent_con)
+        pattern = nltk.ParentedTree.fromstring("(PP)")
+        phrases += pattern_matcher(pattern, sent_con)
+    
+    #look at phrases with 'because'
+    elif qword == 'why':
+        pattern = nltk.ParentedTree.fromstring("(SBAR)")
+        phrases = pattern_matcher(pattern, sent_con)
+
+    if phrases != "":
+        joined_phrases = ""
+        for phrase_tree in phrases:
+            joined_phrases += " "
+            joined_phrases += " ".join(phrase_tree.leaves())
+        print("phrases:")
+        print(joined_phrases)
+        return joined_phrases
     # best_big_verb = ''
     # best_verb = ''
     # num_deps = 0

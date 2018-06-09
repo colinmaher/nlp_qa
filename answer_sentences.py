@@ -89,13 +89,13 @@ def choose_sentence(question, story):
     # if question_word == "what":
         # sentence = get_best_what_sentence(filtered_sents, filtered_question, tree)
     diff = question['difficulty']
-    if diff != 'Discourse':
-        sentence = get_best_wordnet_sent(question, story)
-    else:
-        sentence = None
-        # find_answer()
-    # (S (NP (*)) (VP (*) (PP)))
-    print("Choose_sentence: " + str(sentence))
+    # if diff != 'Discourse':
+    sentence = get_best_wordnet_sent(question, story)
+    # else:
+    #     sentence = None
+    #     # find_answer()
+    # # (S (NP (*)) (VP (*) (PP)))
+    # print("Choose_sentence: " + str(sentence))
 
     return sentence
 

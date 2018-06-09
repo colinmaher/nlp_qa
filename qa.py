@@ -70,6 +70,7 @@ def get_answer(question, story):
     
     # print(question)
     print(question['qid'] + ": " + question["text"])
+    print('difficulty: ' + question['difficulty'])
     # print(question['dep'])
     # print(story['text'])
     # print(story['sch'])
