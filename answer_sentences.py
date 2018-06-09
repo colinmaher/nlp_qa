@@ -95,6 +95,7 @@ def choose_sentence(question, story):
         sentence = None
         # find_answer()
     # (S (NP (*)) (VP (*) (PP)))
+    print("Choose_sentence: " + str(sentence))
 
     return sentence
 
@@ -153,26 +154,36 @@ def get_best_wordnet_sent(question, story, use_sch=True):
     for sent in wn_story_dict[question['sid']]:
         sent_score = 0.0
         # did_match = False
-        for word in sent:
-            for qword in qwords:
+        words_not_found = set(qwords)
+    
+        for qword in qwords:
+            for word in sent:
                 if qword == word:
-                    print('matched ' + qword + ' with ' + word)
+                    # print('matched ' + qword + ' with ' + word)
                     sent_score += 1
-                    print('sent ' + str(i) + ' score: ' + str(sent_score))
-                    print('sent ' + str(i) + ': ' + sentences[i])
+                    # print('sent ' + str(i) + ' score: ' + str(sent_score))
+                    # print('sent ' + str(i) + ': ' + sentences[i])
+                    words_not_found.remove(qword)
+                    # break
 
-
+        print("words not found: " + str(words_not_found))
         # if words not in wordnet data, try factoring in word similarity a bit
-        for word in sent:
-            for qword in qwords:
+        
+        for qword in words_not_found:
+            highest_sim = 0
+            for word in sent:
                 if word in model.vocab and qword in model.vocab:
-                    sim = model.similarity(word, qword)                
+                    sim = model.similarity(word, qword)               
                     # print("sim of '" + word + "' and '" + qword + "' = " + str(sim))
-                    if sim > 0.5:
-                        sent_score += 0.1
-                        print("sim of '" + word + "' and '" + qword + "' = " + str(sim))
-                        print('sent ' + str(i) + ' score: ' + str(sent_score))
-                        print('sent ' + str(i) + ': ' + sentences[i])
+                    if sim > highest_sim:
+                        highest_sim = sim
+                        # print("sim of '" + word + "' and '" + qword + "' = " + str(sim))
+                        # print('sent ' + str(i) + ' score: ' + str(sent_score))
+                        # print('sent ' + str(i) + ': ' + sentences[i])
+
+            if highest_sim > 0.3:
+                sent_score += highest_sim
+
         if sent_score > best_score:
             best_score = sent_score
             best_sent = sentences[i]

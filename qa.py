@@ -69,7 +69,7 @@ def get_answer(question, story):
     # # print("\n" + question_word + "\n")
     
     # print(question)
-    print(question['qid'] + ": " + question["text"])
+    # print(question['qid'] + ": " + question["text"])
     # print(question['dep'])
     # print(story['text'])
     # print(story['sch'])
@@ -128,11 +128,8 @@ def get_answer(question, story):
         #     for sent in sentences:
 
     sentence = choose_sentence(question, story)
-    if sentence is not None:
-        answer = sentence
-
     if sentence != None:
-        None
+        answer = sentence
         #call function to get part relevant of sentence out
         # s_dep
         
@@ -146,7 +143,7 @@ def get_answer(question, story):
         i = 0
         for sent in sentences:
             if sent == sentence:
-                print(s_dep[i])
+                # print(s_dep[i])
                 answer = find_answer(question, s_dep[i])
             i+=1
 

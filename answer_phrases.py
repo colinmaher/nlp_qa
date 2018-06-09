@@ -1,4 +1,4 @@
-# import utils
+import operator
 from utils import nltk, pattern_matcher, model
 
 #function to recursively go up the dependency tree to find the word in the question we wish
@@ -49,4 +49,22 @@ def find_ans_word(q_dep_graph):
     return highest_subj
 
 def find_answer(question, sent_dep):
-    return None
+
+    for node in sent_dep.nodes.values():
+        if node['rel'] == "root":
+            deps = get_dependents(node, sent_dep)
+            deps = sorted(deps+[node], key=operator.itemgetter("address"))
+
+            
+            return " ".join(dep["word"] for dep in deps)
+
+
+def get_dependents(node, graph):
+    results = []
+    for item in node["deps"]:
+        address = node["deps"][item][0]
+        dep = graph.nodes[address]
+        results.append(dep)
+        results = results + get_dependents(dep, graph)
+        
+    return results
