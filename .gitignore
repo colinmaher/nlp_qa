@@ -1,4 +1,8 @@
 **
 !qa.py
+!answer_phrases.py
+!answer_sentences.py
+!utils.py
+!model-prune.py
 !.gitignore
 !README
