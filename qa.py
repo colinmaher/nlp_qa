@@ -10,10 +10,11 @@ python3 qa.py > output
 '''
 
 import utils
-from utils import nltk, stopwords
+from utils import (nltk, stopwords, get_sentences, get_bow, 
+                    generate_collocations, generate_wn_list)
 # import operator, re, nltk, utils
-from answer_sentences import baseline, choose_sentence
-import answer_phrases as ans_phrases
+from answer_sentences import (baseline, choose_sentence)
+from answer_phrases import find_answer
 
 from qa_engine.base import QABase
 from qa_engine.score_answers import main as score_answers
@@ -53,20 +54,27 @@ def get_answer(question, story):
     """
     ###     Your Code Goes Here         ###
     # print(story["text"])
-
-    # use sch if it's there
-    if(isinstance(story["sch"], str)):
-        sentences = utils.get_sentences(story["sch"])
-    else:
-        sentences = utils.get_sentences(story["text"])
-    # sentences = get_sentences(story["text"])
-
-    # print("\n" + question_word + "\n")
     
-    print(question['qid'] + ": " + question["text"])
-    # print(question['dep'])
+    #generate resources needed throughout the program first
+    generate_collocations()
+    generate_wn_list(story)
+    
+    # # use sch if it's there
+    if(isinstance(story["sch"], str)):
+        sentences = get_sentences(story["sch"])
+        # print(sentences)
+    else:
+        sentences = get_sentences(story["text"])
 
-    qbow = utils.get_bow(utils.get_sentences(question["text"])[0], stopwords)
+    # # print("\n" + question_word + "\n")
+    
+    # print(question)
+    print(question['qid'] + ": " + question["text"])
+    print('difficulty: ' + question['difficulty'])
+    # print(question['dep'])
+    # print(story['text'])
+    # print(story['sch'])
+    qbow = get_bow(get_sentences(question["text"])[0], stopwords)
     print("qbow:" + str(qbow))
     answer = " ".join([t[0] for t in baseline(qbow, sentences, stopwords)])
 
@@ -121,16 +129,35 @@ def get_answer(question, story):
         #     for sent in sentences:
 
     sentence = choose_sentence(question, story)
-    if sentence is not None:
+    if sentence != None:
         answer = sentence
-
-    
+        #call function to get part relevant of sentence out
+        # s_dep
+        
+        if(isinstance(story["sch"], str)):
+            sentences = nltk.sent_tokenize(story["sch"])
+            s_dep = story['sch_dep']
+            s_con = story['sch_par']
+            # print(sentences)
+        else:
+            sentences = nltk.sent_tokenize(story["text"])
+            s_dep = story['story_dep']
+            s_con = story['story_par']
+        i = 0
+        for sent in sentences:
+            if sent == sentence:
+                # print(s_dep[i])
+                answer = find_answer(question, s_dep[i], s_con[i])
+            i+=1
 
     # print(answer + "\n")
     # if(isinstance(story["sch"], str)):
     #     print("Scherezade\n")
 
     ###     End of Your Code         ###
+    print("answer:")
+    print(answer)
+    print()
     return answer
 
 

@@ -1,5 +1,5 @@
-# import utils
-from utils import nltk, pattern_matcher, model
+import operator
+from utils import nltk, model, stopwords, pattern_matcher, match_sent_structs
 
 #function to recursively go up the dependency tree to find the word in the question we wish
 #to look for in the answer
@@ -12,7 +12,6 @@ from utils import nltk, pattern_matcher, model
 #                 nodes_to_search += [dep[1]]
 #     if highest_subj_ind == 0:
 #         find_ans_word(q_dep_graph, nodes_to_search)
-
 
 def find_ans_word(q_dep_graph):
     highest_subj_ind = 0
@@ -48,69 +47,107 @@ def find_ans_word(q_dep_graph):
     # print("best q word: " + highest_subj)
     return highest_subj
 
-def find_answer(s_con_graph, s_dep_graph, q_dep_graph, pattern):
-    pattern = nltk.ParentedTree.fromstring(pattern)
-    phrases = pattern_matcher(pattern, s_con_graph)
-    phrases += pattern_matcher("(VP)", s_con_graph)
-    phrase_sims = []
+def find_answer(question, sent_dep, sent_con):
+    #get right types of phrase based on question first
+    qword = nltk.word_tokenize(question['text'])[0].lower()
+    phrases = ""
+    print(sent_con)
+    if qword == 'what':
+        # print("sent constuency graph:")
+        # for tree in sent_con.subtrees():
+        #     print(tree)
+        pattern = nltk.ParentedTree.fromstring("(NP)")
+        phrases = pattern_matcher(pattern, sent_con)
+        
+    if qword == 'where':
+        pattern = nltk.ParentedTree.fromstring("(PP)")
+        phrases = pattern_matcher(pattern, sent_con)
 
-    important_q_word = find_ans_word(q_dep_graph)
-    word_in_ans = "some bull"
+    elif qword == 'who':
+        pattern = nltk.ParentedTree.fromstring("(NP)")
+        phrases = pattern_matcher(pattern, sent_con)
+        # pattern = nltk.ParentedTree.fromstring("(NNP)")
+        # phrases += pattern_matcher(pattern, sent_con)
+
+    elif qword == 'when':
+        pattern = nltk.ParentedTree.fromstring("(NP)")
+        phrases = pattern_matcher(pattern, sent_con)
+        pattern = nltk.ParentedTree.fromstring("(PP)")
+        phrases += pattern_matcher(pattern, sent_con)
+    
+    #look at phrases with 'because'
+    elif qword == 'why':
+        pattern = nltk.ParentedTree.fromstring("(SBAR)")
+        phrases = pattern_matcher(pattern, sent_con)
+
+    if phrases != "":
+        joined_phrases = ""
+        for phrase_tree in phrases:
+            joined_phrases += " "
+            joined_phrases += " ".join(phrase_tree.leaves())
+        print("phrases:")
+        print(joined_phrases)
+        return joined_phrases
+    # best_big_verb = ''
+    # best_verb = ''
+    # num_deps = 0
+    # num_big_deps = 0
+    # noun = False
+
+    # print (question['dep'])
+
+    # for node in question['dep'].nodes.values():
+    #     if node['tag'][0].lower() == "v":
+    #         deps = get_dependents(node, question['dep'])
+    #         if len(deps) > num_deps:
+    #             if node['word'] not in stopwords:
+    #                 num_big_deps = len(deps)
+    #                 best_big_verb = node['word']
+    #             else:
+    #                 best_verb = node['word']
+    #                 num_deps = len(deps)
+    
+    # print("answer dep: ")
+    # print(sent_dep)
+
+    # print("best big verb: ")
+    # print(best_big_verb)
+    # print(num_big_deps)
+    # print()
+
+    # print("best verb: ")
+    # print(best_verb)
+    # print(num_deps)
 
 
-    # most_similar_word = ""
-    high_sim = 0
-    # print(s_con_graph)
-    for nodeNum in s_dep_graph.nodes:
-        node = s_dep_graph.get_by_address(nodeNum)
-        # print(node)
-        # if node['word'] == important_q_word:
-        if node['word'] is not None:
-            if node['word'] in model.vocab and important_q_word in model.vocab:
-                word_sim = model.similarity(node['word'], important_q_word)
-                if word_sim > high_sim:
-                    high_sim = word_sim
-                    if node['head'] != 0:
-                        word_in_ans = s_dep_graph.get_by_address(node['head'])
-                        word_in_ans = word_in_ans["word"]
-                        # print(word_in_ans)
-                    else:
-                        if node['word'] != None:
-                            word_in_ans = node['word']
-                            # print(word_in_ans)
-            else:
-                if node['word'].lower() == important_q_word.lower():
-                    if node['head'] != 0:
-                            word_in_ans = s_dep_graph.get_by_address(node['head'])
-                            word_in_ans = word_in_ans["word"]
-                            # print(word_in_ans)
-                    else:
-                        if node['word'] != None:
-                            word_in_ans = node['word']
-                            # print(word_in_ans)
+    # most_sim_verb = ''
+    # sim_value = 0.0
 
-    # print("word in ans: " + word_in_ans)
-    # print("s_graph:")
-    # print(s_con_graph)
-    # for node in s_con_graph.subtrees(lambda s_con_graph: len(s_con_graph.leaves()) == 1 and word_in_ans == s_con_graph.leaves()[0]):
-        # print(node)
-        #find smallest tree containing word_in_ans
-            #now find the parent noun phrase until the parent is not a noun phrase
-
-        # print(node.parent())
+    # for node in sent_dep.nodes.values():
+    #     if node['tag'][0].lower() == 'v':
+    #         if node['word'] in model.vocab and (best_verb in model.vocab or best_big_verb in model.vocab):
+    #             if best_big_verb != '':
+    #                 if model.similarity(node['word'], best_big_verb) > sim_value:
 
 
-    # for phrase in phrases:
-    #     for word in phrase.leaves():
-            # print("Word: " + word)
-            # if word in model.vocab and word_in_ans in model.vocab:
-            #     word_sim = model.similarity(word, word_in_ans)
-            #     if word_sim > highest_sim:
-            #         highest_sim = word_sim
-            #         best_phrase = phrase
+    # if num_deps == 0 and num_big_deps == 0:
+    for node in sent_dep.nodes.values():
 
-            #find the place of the the word_in_ans in the story constituency tree, 
-            # go up trees until the tree is no longer an NP, extract the highest NP phrase we ended on
+        if node['rel'] == "root":
+            deps = get_dependents(node, sent_dep)
+            
+            deps = sorted(deps+[node], key=operator.itemgetter("address"))
 
-    # return
-    #use dependency relations to decide which noun phrase contains the correct answer
+            
+            return " ".join(dep["word"] for dep in deps)
+
+
+def get_dependents(node, graph):
+    results = []
+    for item in node["deps"]:
+        address = node["deps"][item][0]
+        dep = graph.nodes[address]
+        results.append(dep)
+        results = results + get_dependents(dep, graph)
+        
+    return results
