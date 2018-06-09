@@ -58,6 +58,8 @@ def find_answer(question, sent_dep, sent_con):
         #     print(tree)
         pattern = nltk.ParentedTree.fromstring("(NP)")
         phrases = pattern_matcher(pattern, sent_con)
+        # pattern = nltk.ParentedTree.fromstring("(VP)")
+        # phrases += pattern_matcher(pattern, sent_con)
         
     if qword == 'where':
         pattern = nltk.ParentedTree.fromstring("(PP)")
@@ -67,6 +69,8 @@ def find_answer(question, sent_dep, sent_con):
         pattern = nltk.ParentedTree.fromstring("(NP)")
         phrases = pattern_matcher(pattern, sent_con)
         # pattern = nltk.ParentedTree.fromstring("(NNP)")
+        # phrases += pattern_matcher(pattern, sent_con)
+        # pattern = nltk.ParentedTree.fromstring("(MD)")
         # phrases += pattern_matcher(pattern, sent_con)
 
     elif qword == 'when':
@@ -79,6 +83,19 @@ def find_answer(question, sent_dep, sent_con):
     elif qword == 'why':
         pattern = nltk.ParentedTree.fromstring("(SBAR)")
         phrases = pattern_matcher(pattern, sent_con)
+
+    elif qword == 'which':
+        pattern = nltk.ParentedTree.fromstring("(NP)")
+        phrases = pattern_matcher(pattern, sent_con)
+        
+
+    elif qword == 'how':
+        # pattern = nltk.ParentedTree.fromstring("(NP)")
+        # phrases = pattern_matcher(pattern, sent_con)
+        pattern = nltk.ParentedTree.fromstring("(PP)")
+        phrases = pattern_matcher(pattern, sent_con)
+        pattern = nltk.ParentedTree.fromstring("(VP)")
+        phrases += pattern_matcher(pattern, sent_con)
 
     if phrases != "":
         joined_phrases = ""
