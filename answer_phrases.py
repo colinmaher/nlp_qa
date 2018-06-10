@@ -1,4 +1,5 @@
 import operator
+import re
 from utils import nltk, model, stopwords, pattern_matcher, match_sent_structs, get_bow, get_sentences
 
 #function to recursively go up the dependency tree to find the word in the question we wish
@@ -107,7 +108,6 @@ def find_answer(question, sent_dep, sent_con):
             phrase = phrase_tree.leaves()
             print("phrase leaves: ")
             print(phrase)
-            filtered_phrases = []
             use_phrase = True
             for word in phrase:
                 print("qbow: ")
@@ -115,58 +115,14 @@ def find_answer(question, sent_dep, sent_con):
                 if word in qbow:
                     use_phrase = False
             if use_phrase: 
-                filtered_phrases.append(" ".join(phrase))
-            print("filtered phrase: ")
-            print(filtered_phrases)
-            if filtered_phrases != []:
-                joined_phrases += " ".join(filtered_phrases) + " "
+                joined_phrases += " ".join(phrase) + " "
+
         print("phrases:")
         print(joined_phrases)
-        if joined_phrases != "":
+        if joined_phrases != "": 
+            # phrase_tokens = " ".join(join)
             return joined_phrases
-    # best_big_verb = ''
-    # best_verb = ''
-    # num_deps = 0
-    # num_big_deps = 0
-    # noun = False
 
-    # print (question['dep'])
-
-    # for node in question['dep'].nodes.values():
-    #     if node['tag'][0].lower() == "v":
-    #         deps = get_dependents(node, question['dep'])
-    #         if len(deps) > num_deps:
-    #             if node['word'] not in stopwords:
-    #                 num_big_deps = len(deps)
-    #                 best_big_verb = node['word']
-    #             else:
-    #                 best_verb = node['word']
-    #                 num_deps = len(deps)
-    
-    # print("answer dep: ")
-    # print(sent_dep)
-
-    # print("best big verb: ")
-    # print(best_big_verb)
-    # print(num_big_deps)
-    # print()
-
-    # print("best verb: ")
-    # print(best_verb)
-    # print(num_deps)
-
-
-    # most_sim_verb = ''
-    # sim_value = 0.0
-
-    # for node in sent_dep.nodes.values():
-    #     if node['tag'][0].lower() == 'v':
-    #         if node['word'] in model.vocab and (best_verb in model.vocab or best_big_verb in model.vocab):
-    #             if best_big_verb != '':
-    #                 if model.similarity(node['word'], best_big_verb) > sim_value:
-
-
-    # if num_deps == 0 and num_big_deps == 0:
     for node in sent_dep.nodes.values():
 
         if node['rel'] == "root":
@@ -175,7 +131,7 @@ def find_answer(question, sent_dep, sent_con):
             deps = sorted(deps+[node], key=operator.itemgetter("address"))
 
             
-            return " ".join(dep["word"] for dep in deps)
+            return " ".join(dep["word"] for dep in deps if re.match(r"\w+", dep["word"]) != None)
 
 
 def get_dependents(node, graph):
