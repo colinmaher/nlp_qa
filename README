@@ -10,10 +10,3 @@ put GoogleNews_vectors_negative300.bin.gz (with _'s in filename instead of -'s) 
 run: 
 python3 model-prune.py
 python3 qa.py
-
-
-
-Note:
-
-we tried a bunch of complicated stuff using dependency graphs and constituency parses but it made our score lower so we're submitting a simpler version. 
-However, the work done can be seen on branches on this repository: https://github.com/colinmaher/nlp_question_answering

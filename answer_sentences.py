@@ -209,6 +209,9 @@ def choose_sentence(question, story):
             if (discourse_type == 'first' or discourse_type == 'before') and sent_ind>0:
                 print('returning sentence before wordnet matched sentence')
                 return sentences[sent_ind-1:sent_ind+1]
+        
+        if discourse_type == '' and sent_ind>0:
+            return sentences[sent_ind-1:sent_ind+1]
     # else:
     #     sentence = None
     #     # find_answer()

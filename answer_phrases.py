@@ -82,7 +82,7 @@ def find_answer(question, sent_dep, sent_con):
         pattern = nltk.ParentedTree.fromstring("(NP)")
         phrases = pattern_matcher(pattern, sent_con)
         pattern = nltk.ParentedTree.fromstring("(PP)")
-        phrases += pattern_matcher(pattern, sent_con)
+        phrases = pattern_matcher(pattern, sent_con)
     
     #look at phrases with 'because'
     elif qword == 'why':
@@ -97,10 +97,10 @@ def find_answer(question, sent_dep, sent_con):
     elif qword == 'how':
         # pattern = nltk.ParentedTree.fromstring("(NP)")
         # phrases = pattern_matcher(pattern, sent_con)
-        pattern = nltk.ParentedTree.fromstring("(PP)")
+        pattern = nltk.ParentedTree.fromstring("(RB)")
         phrases = pattern_matcher(pattern, sent_con)
-        pattern = nltk.ParentedTree.fromstring("(VP)")
-        phrases += pattern_matcher(pattern, sent_con)
+        # pattern = nltk.ParentedTree.fromstring("(VP)")
+        # phrases += pattern_matcher(pattern, sent_con)
 
     # else:
     #     pattern = nltk.ParentedTree.fromstring("(NP)")

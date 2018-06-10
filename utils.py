@@ -54,8 +54,10 @@ def generate_wn_list(story):
     else:
         if isinstance(story["sch"], str):
             story_txt = story['sch']
+            story_dep = story['sch_dep']
         else:
             story_txt = story['text']
+            story_dep = story['story_dep']
 
         wn_sent_list = []
         wn_story_dict[sid] = []
@@ -66,6 +68,7 @@ def generate_wn_list(story):
         for sent in sents:
             word_list = set()   
             sbow = get_bow(sents_tagged[j], stopwords)
+            better_bow(story_dep[j])
             # words = nltk.word_tokenize(sent)
             # print(sent)
             # print(sbow)
@@ -139,10 +142,11 @@ def generate_wn_list(story):
         
         # print(wn_story_dict[sid])
             
-def better_bow(question):
-    # qdep = 
-    qdep = question['dep']
-    # print(qdep)
+def better_bow(dep):
+    # dep = dependency graph of sentence to bow
+    # re.match(r"\w+", t[0].lower()) is not None
+    print(dep)
+    return set()
 
 # See if our pattern matches the current root of the tree
 def matches(pattern, root):
