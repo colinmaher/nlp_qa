@@ -110,18 +110,21 @@ def find_answer(question, sent_dep, sent_con):
 
     if phrases != "":
         joined_phrases = ""
+        num_phrases = 0
         for phrase_tree in phrases:
             phrase = phrase_tree.leaves()
             print("phrase leaves: ")
             print(phrase)
             use_phrase = True
+            words_in_q = 0
             for word in phrase:
                 print("qbow: ")
                 print(qbow)
                 if word in qbow:
                     use_phrase = False
-            if use_phrase: 
+            if use_phrase and num_phrases < 3: 
                 joined_phrases += " ".join(phrase) + " "
+                num_phrases += 1
 
         print("phrases:")
         print(joined_phrases)
