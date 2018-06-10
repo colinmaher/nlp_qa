@@ -3,159 +3,7 @@ from utils import (nltk, get_bow, get_sentences, match_trees, better_bow,
 import operator
 from nltk.stem.porter import *
 
-#"What" question specific function
-def get_best_what_sentence(filtered_sents, filtered_question, tree):
-
-    
-    # for subtree in tree:
-    #     print(subtree)
-    #     phrases = []
-
-        # pattern1 = nltk.ParentedTree.fromstring("(VP)")
-        # phrases += pattern_matcher(pattern1, subtree)
-
-    # print(phrases)
-
-    #print q dep
-    # print(filtered_question[1])
-
-
-    current_best = (filtered_sents[0][1], 0)
-    current_best_con_graph = filtered_sents[0][2]
-    current_best_dep_graph = filtered_sents[0][3]
-    for pair in filtered_sents:
-        sent_sim_weight_total = 0
-        significant_weights = 0
-
-        for word in pair[0]:
-        
-            for qword in filtered_question[0]:
-                #check if words are in the model
-                if qword in model.vocab and word in model.vocab:
-                    sim = model.similarity(word, qword)
-                    
-                    # if sim > 0.98:
-                    #     sent_sim_weight_total += weights[0]
-                    #     significant_weights += 1
-                    #     print('same word *= ' + str(1.25))
-                    if sim > 0.1:
-                        # print(word, qword)
-                        # print(sim)
-                        sent_sim_weight_total += sim
-                        significant_weights += 1
-
-                elif qword == word: #for words not in model (like names)
-                    sent_sim_weight_total += 2
-                    significant_weights += 1
-                    # print('same name += 2')
-                    
-        # print(sent_sim_weight_total, significant_weights)
-        if significant_weights is not 0:
-            avg_weight = sent_sim_weight_total/len(pair[0])
-        else:
-            avg_weight = 0
-        if avg_weight > current_best[1]:
-            current_best = (pair[1], avg_weight)
-            current_best_con_graph = pair[2]
-            current_best_dep_graph = pair[3]
-        # print(avg_weight)
-    # print("current best graph: ")
-    # print(current_best_graph)
-
-    # print(find_answer(current_best_graph))
-    pattern = "(NP)"
-    # print(current_best_dep_graph)
-    # find_answer(current_best_con_graph, current_best_dep_graph, filtered_question[1], pattern)
-
-    return current_best[0]
-
-
-def find_answer(s_con_graph, patterns, question):
-    #match sentence's constituency graph with pattern
-    qwords = nltk.word_tokenize(question)
-    qword = qwords[0].lower()
-    important_q_words = qwords[1:]
-    # patt2 = nltk.ParentedTree.fromstring(pattern[1])
-    # print(s_con_graph)
-    phrase_structs = []
-    for pat in patterns:
-        patt = nltk.ParentedTree.fromstring(pat)
-        phrase_structs += pattern_matcher(patt, s_con_graph)
-
-    # compare phrase similarity with question (not working well)
-
-    # most_sim_phrase = phrase_structs[0]
-    # highest_phrase_sim = 0
-    # for phrase in phrase_structs:
-    #     phrase_text = phrase.leaves()
-    #     phrase_sim = 0
-    #     significant_weights = 0
-
-    #     for word in phrase_text:
-    #         for qword in important_q_words:
-    #             if qword in model.vocab and word in model.vocab:
-    #                 sim = model.similarity(word, qword)
-    #                 if sim > 0.1:
-    #                     significant_weights += 1
-    #                     # phrase_sim += model.similarity(word, qword)
-    #                     phrase_sim += 1
-    #                 # elif sim > 0.3:
-    #                 #     significant_weights += 1
-    #                 #     phrase_sim += 1
-    #             elif word == qword:
-    #                 phrase_sim += 2
-    #     if significant_weights > 0:
-    #         phrase_sim = phrase_sim
-    #     else:
-    #         phrase_sim = 0
-    #     if phrase_sim > highest_phrase_sim:
-    #         highest_phrase_sim = phrase_sim
-    #         most_sim_phrase = phrase
-                    
-
-    # phrase_structs += pattern_matcher(patt2, s_con_graph)
-    print("Phrase matches: " + str(phrase_structs))
-        # if highest_phrase_sim > 0.1:
-        #     answer = " ".join(most_sim_phrase.leaves())
-        # else:
-    
-    if(not phrase_structs):
-        return
-    else:
-        largest_phrase = phrase_structs[0]
-    for phrase in phrase_structs:
-        print(len(phrase))
-        size = len(phrase.leaves())
-        if size > len(largest_phrase.leaves()):
-            largest_phrase = phrase
-    
-    answer = " ".join(largest_phrase.leaves())
-        # size = 0
-        # for node in phrase:
-        #     size += 1
-
-    return answer
-
-# decides which algorithm to use
-# we should pass in the sentence here as a tuple of the text and the dep graph
-# also need to use scherezade when applicable
 def choose_sentence(question, story):
-    # question_word = question['text'].split(' ', 1)[0].lower()
-    # # try:
-    # #     tree = story["sch_par"]
-    # # except:
-    # tree = story["story_par"]
-
-    # sentence = None
-    # pattern = nltk.ParentedTree.fromstring("(ROOT)")
-    # sentence_structs = match_sent_structs(pattern, tree)
-    # sent_deps = story['story_dep']
-    # filtered_sents = match_trees(pattern, tree, sentence_structs, sent_deps)
-    # #change here if we don't want qbow:
-    # filtered_question = (get_bow(get_sentences(question['text'])[0], stopwords), question['dep'])
-
-    # if question_word == "what":
-        # sentence = get_best_what_sentence(filtered_sents, filtered_question, tree)
 
     diff = question['difficulty']
     sentence = get_best_wordnet_sent(question, story)
@@ -279,7 +127,7 @@ def get_best_wordnet_sent(question, story, use_sch=True):
     
         for qword in qwords:
             for word in sent:
-                if qword == word:
+                if str(qword) == word:
                     # print('matched ' + qword + ' with ' + word)
                     sent_score += 1
                     # print('sent ' + str(i) + ' score: ' + str(sent_score))
@@ -294,7 +142,7 @@ def get_best_wordnet_sent(question, story, use_sch=True):
             highest_sim = 0
             for word in sent:
                 if word in model.vocab and qword in model.vocab:
-                    sim = model.similarity(word, qword)               
+                    sim = model.similarity(word, str(qword))               
                     # print("sim of '" + word + "' and '" + qword + "' = " + str(sim))
                     if sim > highest_sim:
                         highest_sim = sim

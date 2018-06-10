@@ -13,7 +13,7 @@ except:
     model = gensim.models.KeyedVectors.load('pruned_w2v_model')
 
 stopwords = set(nltk.corpus.stopwords.words("english"))
-
+stopwords -= {"doing", "was", "after", "she", "our", "her"}
 # collocations from brown corpus
 brown_collocations = []
 def generate_collocations():

@@ -72,7 +72,7 @@ def get_answer(question, story):
     
     # print(question)
     print(question['qid'])
-    print(question["text"])
+    # print(question["text"])
     print('difficulty: ' + question['difficulty'])
     # print(question["qid"])
     #  + ": " + question["text"])

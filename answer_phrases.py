@@ -2,52 +2,6 @@ import operator
 import re
 from utils import nltk, model, stopwords, pattern_matcher, match_sent_structs, get_bow, get_sentences
 
-#function to recursively go up the dependency tree to find the word in the question we wish
-#to look for in the answer
-# def recursive_find_ans_word(node_indicies):
-#     for dep in node['deps'].items():
-#         if re.match(r'^V*', dep[0]):
-#             highest_subj_ind = dep[1][0]
-#         else:
-#             if len(q_dep_graph.get_by_address(dep[1])['deps']) > 0:
-#                 nodes_to_search += [dep[1]]
-#     if highest_subj_ind == 0:
-#         find_ans_word(q_dep_graph, nodes_to_search)
-
-# def find_ans_word(q_dep_graph):
-#     highest_subj_ind = 0
-#     highest_subj = ''
-#     root_word = ''
-#     nodes_to_search = []
-#     for nodeNum in q_dep_graph.nodes:
-#         node = q_dep_graph.get_by_address(nodeNum)
-#         # print(node)
-#         if node['rel'] == 'root':
-#             root_word = node['word']
-#             # print('root deps:')
-#             # print(node['deps'].items())
-#             #if root is qword, recursively find nsub
-#             # if re.match(r'^W*', node['tag']):
-#             #     dep_nodes_list = []
-#             #     for node in node['deps']:
-#             #         dep_nodes_list.append(node[1])
-#             #     recursive_find_ans_word(dep_nodes_list)
-#             for dep in node['deps'].items():
-#                 if q_dep_graph.get_by_address(dep[1][0])['rel'] == 'nsubj':
-#                     highest_subj_ind = dep[1][0]
-#     highest_subj = q_dep_graph.get_by_address(highest_subj_ind)['word']
-#     if highest_subj is None:
-#         for dep in node['deps'].items():
-#             if q_dep_graph.get_by_address(dep[1][0])['tag'].lower()[0] == 'v':
-#                 highest_subj_ind = dep[1][0]
-#         if highest_subj_ind == 0:
-#             highest_subj = root_word
-#         else:
-#             highest_subj = q_dep_graph.get_by_address(highest_subj_ind)['word']
-
-#     # print("best q word: " + highest_subj)
-#     return highest_subj
-
 def find_answer(question, sent_dep, sent_con):
     print('in find ans')
     #get right types of phrase based on question first
@@ -63,18 +17,17 @@ def find_answer(question, sent_dep, sent_con):
         #     print(tree)
         pattern = nltk.ParentedTree.fromstring("(NP)")
         phrases = pattern_matcher(pattern, sent_con)
-        # pattern = nltk.ParentedTree.fromstring("(VP)")
-        # phrases += pattern_matcher(pattern, sent_con)
+
         
-    if qword == 'where':
+    if qword == 'where' or qword == 'in' or qword == 'after':
         pattern = nltk.ParentedTree.fromstring("(PP)")
         phrases = pattern_matcher(pattern, sent_con)
 
     elif qword == 'who':
-        pattern = nltk.ParentedTree.fromstring("(NP)")
+        pattern = nltk.ParentedTree.fromstring("(NP (DT) (*) (NN))")
         phrases = pattern_matcher(pattern, sent_con)
-        # pattern = nltk.ParentedTree.fromstring("(NNP)")
-        # phrases += pattern_matcher(pattern, sent_con)
+        pattern = nltk.ParentedTree.fromstring("(NNP)")
+        phrases += pattern_matcher(pattern, sent_con)
         pattern = nltk.ParentedTree.fromstring("(MD)")
         phrases += pattern_matcher(pattern, sent_con)
 
@@ -82,7 +35,7 @@ def find_answer(question, sent_dep, sent_con):
         pattern = nltk.ParentedTree.fromstring("(NP)")
         phrases = pattern_matcher(pattern, sent_con)
         pattern = nltk.ParentedTree.fromstring("(PP)")
-        phrases = pattern_matcher(pattern, sent_con)
+        phrases += pattern_matcher(pattern, sent_con)
     
     #look at phrases with 'because'
     elif qword == 'why':
@@ -102,11 +55,12 @@ def find_answer(question, sent_dep, sent_con):
         # pattern = nltk.ParentedTree.fromstring("(VP)")
         # phrases += pattern_matcher(pattern, sent_con)
 
-    # else:
-    #     pattern = nltk.ParentedTree.fromstring("(NP)")
-    #     phrases = pattern_matcher(pattern, sent_con)
-    #     pattern = nltk.ParentedTree.fromstring("(VP)")
-    #     phrases += pattern_matcher(pattern, sent_con)
+    elif qword == 'had':
+        return "no"
+
+    else:
+        pattern = nltk.ParentedTree.fromstring("(NP)")
+        phrases = pattern_matcher(pattern, sent_con)
 
     if phrases != "":
         joined_phrases = ""
