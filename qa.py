@@ -86,11 +86,11 @@ def get_answer(question, story):
     # #if sch is not available use our algorithm
     # if(not isinstance(story["sch"], str)):
     # choose sentence arbitrates strategy to use  for finding best answer
-    sentence = choose_sentence(question, story)
-    if sentence is not None:
-        find_answer(question, sentence)
+    # sentence = choose_sentence(question, story)
+    # if sentence is not None:
+    #     find_answer(question, sentence)
 
-    return answer
+    # return answer
 
     # print(question['difficulty'])
     # if (question['difficulty'] == 'Discourse'):
@@ -161,6 +161,7 @@ def get_answer(question, story):
             if sent == sentence:
                 # print(s_dep[i])
                 answer = find_answer(question, s_dep[i], s_con[i])
+
             i+=1
 
     # print(answer + "\n")

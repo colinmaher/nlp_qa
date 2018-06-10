@@ -1,5 +1,5 @@
 from utils import (nltk, get_bow, get_sentences, match_trees, better_bow, 
-                    match_sent_structs, model, stopwords, wn_story_dict)
+                    match_sent_structs, model, stopwords, wn_story_dict, pattern_matcher)
 import operator
 from nltk.stem.porter import *
 
@@ -165,7 +165,7 @@ def choose_sentence(question, story):
     # # (S (NP (*)) (VP (*) (PP)))
     # print("Choose_sentence: " + str(sentence))
 
-    return answer
+    return sentence
 
 
 #baseline sentence matching by overlap
