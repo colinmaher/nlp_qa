@@ -49,6 +49,7 @@ from utils import nltk, model, stopwords, pattern_matcher, match_sent_structs, g
 #     return highest_subj
 
 def find_answer(question, sent_dep, sent_con):
+    print('in find ans')
     #get right types of phrase based on question first
     qtokens = nltk.word_tokenize(question['text'])
     qword = qtokens[0].lower()
@@ -101,7 +102,12 @@ def find_answer(question, sent_dep, sent_con):
         pattern = nltk.ParentedTree.fromstring("(VP)")
         phrases += pattern_matcher(pattern, sent_con)
 
-    
+    # else:
+    #     pattern = nltk.ParentedTree.fromstring("(NP)")
+    #     phrases = pattern_matcher(pattern, sent_con)
+    #     pattern = nltk.ParentedTree.fromstring("(VP)")
+    #     phrases += pattern_matcher(pattern, sent_con)
+
     if phrases != "":
         joined_phrases = ""
         for phrase_tree in phrases:

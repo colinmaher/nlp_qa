@@ -156,9 +156,59 @@ def choose_sentence(question, story):
 
     # if question_word == "what":
         # sentence = get_best_what_sentence(filtered_sents, filtered_question, tree)
+
     diff = question['difficulty']
-    # if diff != 'Discourse':
     sentence = get_best_wordnet_sent(question, story)
+
+    
+    if diff == 'Discourse':
+        #get sentence index so we can retrive sentences before /after for discourse
+        print('discourse question')
+        if(isinstance(story["sch"], str)):
+            sentences = story["sch"]
+        else:
+            sentences = story["text"]
+        sentences = nltk.sent_tokenize(sentences)
+        i = 0
+        sent_ind = 0
+        for sent in sentences:
+            if sent == sentence:
+                sent_ind = i
+            i+=1
+
+        print("sent_ind: " + str(sent_ind))
+
+        discourse_type = ''
+        qwords = nltk.word_tokenize(question['text'])
+        lowered_qwords = []
+        for qword in qwords: lowered_qwords.append(qword.lower())
+        qwords = lowered_qwords
+        print("tokenized qwords:" + str(qwords))
+
+        # if question has 'after' in it
+        if 'after' in qwords:
+            discourse_type = 'after'
+        # in question has 'before' in it
+        elif 'first' in qwords:
+            discourse_type = 'first'
+        elif 'before' in qwords:
+            discourse_type = 'before'
+
+        print('discourse_type: ' + discourse_type)
+
+        sent_words = nltk.word_tokenize(sentence)
+        lowered_sent = []
+        for word in sent_words: lowered_sent.append(word.lower())
+
+        if discourse_type in sent_words:
+            return sentence
+        else:
+            if discourse_type == 'after' and sent_ind<len(sentences):
+                print('returning sentence after wordnet matched sentence')
+                return sentences[sent_ind:sent_ind+2] 
+            if (discourse_type == 'first' or discourse_type == 'before') and sent_ind>0:
+                print('returning sentence before wordnet matched sentence')
+                return sentences[sent_ind-1:sent_ind+1]
     # else:
     #     sentence = None
     #     # find_answer()

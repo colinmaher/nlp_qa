@@ -55,6 +55,8 @@ def get_answer(question, story):
     ###     Your Code Goes Here         ###
     # print(story["text"])
     
+    
+    
     #generate resources needed throughout the program first
     generate_collocations()
     generate_wn_list(story)
@@ -70,7 +72,7 @@ def get_answer(question, story):
     
     # print(question)
     print(question['qid'])
-    # print(question["text"])
+    print(question["text"])
     print('difficulty: ' + question['difficulty'])
     # print(question["qid"])
     #  + ": " + question["text"])
@@ -83,12 +85,6 @@ def get_answer(question, story):
     print("Baseline output: " + str(b))
     base = " ".join([t[0] for t in b])
     answer = base
-    # #if sch is not available use our algorithm
-    # if(not isinstance(story["sch"], str)):
-    # choose sentence arbitrates strategy to use  for finding best answer
-    # sentence = choose_sentence(question, story)
-    # if sentence is not None:
-    #     find_answer(question, sentence)
 
     # return answer
 
@@ -137,32 +133,42 @@ def get_answer(question, story):
         #     if q_synsets is not None:
         #         for q_synset in q_synsets:
 
-        #         q_hypo = q_synset.hyponyms()
-        #         q_hyper = q_synset.hypernyms()
-        #     for sent in sentences:
-
     sentence = choose_sentence(question, story)
+    if(isinstance(story["sch"], str)):
+        sentences = nltk.sent_tokenize(story["sch"])
+        s_dep = story['sch_dep']
+        s_con = story['sch_par']
+        # print(sentences)
+    else:
+        sentences = nltk.sent_tokenize(story["text"])
+        s_dep = story['story_dep']
+        s_con = story['story_par']
     if sentence != None:
         answer = sentence
         #call function to get part relevant of sentence out
         # s_dep
+        if isinstance(sentence, list):
         
-        if(isinstance(story["sch"], str)):
-            sentences = nltk.sent_tokenize(story["sch"])
-            s_dep = story['sch_dep']
-            s_con = story['sch_par']
-            # print(sentences)
+            full_answer = ''
+            for chosen_sent in sentence:
+                i = 0
+                for sent in sentences:
+                    if sent == chosen_sent:
+                        # print(s_dep[i])
+                        full_answer += find_answer(question, s_dep[i], s_con[i])
+                        full_answer += ' '
+                    i+=1
+            answer = full_answer
+        
         else:
-            sentences = nltk.sent_tokenize(story["text"])
-            s_dep = story['story_dep']
-            s_con = story['story_par']
-        i = 0
-        for sent in sentences:
-            if sent == sentence:
-                # print(s_dep[i])
-                answer = find_answer(question, s_dep[i], s_con[i])
-
-            i+=1
+            i = 0
+            for sent in sentences:
+                print("sentence iterating over: " + sent)
+                print("sentence from choose_sentence: " + sentence)
+                if sent == sentence:
+                    # print(s_dep[i])
+                    answer = find_answer(question, s_dep[i], s_con[i])
+                i+=1
 
     # print(answer + "\n")
     # if(isinstance(story["sch"], str)):
