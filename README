@@ -1,11 +1,8 @@
-members:
-vmelkote (Vikram Melkote)
-csmaher (Colin Maher)
 
 to run:
 
-put GoogleNews_vectors_negative300.bin.gz (with _'s in filename instead of -'s) from asg4 into project directory 
-(too large to include)
+download google news data set: https://github.com/mmihaltz/word2vec-GoogleNews-vectors 
+rename file to GoogleNews_vectors_negative300.bin.gz (with _'s in filename instead of -'s) and put into working directory 
 
 run: 
 python3 model-prune.py
